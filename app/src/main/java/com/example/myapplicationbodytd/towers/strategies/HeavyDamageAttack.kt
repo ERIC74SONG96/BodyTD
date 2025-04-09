@@ -1,7 +1,7 @@
 import com.example.myapplicationbodytd.enemies.Enemy
 
-class SlowEffectAttack : AttackStrategy {
+class HeavyDamageAttack : AttackStrategy {
     override fun attack(target: Enemy) {
-        // apply slow
+        target.takeDamage(10)
     }
 }
