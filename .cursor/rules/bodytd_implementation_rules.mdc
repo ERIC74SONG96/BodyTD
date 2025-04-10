@@ -1,9 +1,4 @@
 ---
-description: 
-globs: 
-alwaysApply: true
----
- ---
 description: BodyTD Implementation Rules and Development Process
 globs: ["**/*.kt"]
 alwaysApply: false
@@ -96,6 +91,7 @@ alwaysApply: false
 
 2. **Performance Optimization**
    - Profile and optimize game loop
+   - Improve enemy path calculations
    - Optimize tower targeting
 
 3. **User Experience**
@@ -193,4 +189,4 @@ alwaysApply: false
 2. Measure current performance
 3. Implement optimization
 4. Measure improvement
-5. Document changes (in the docs folder when very complex/multiple considerations or when interesting, like for the concepts)
+5. Document changes 

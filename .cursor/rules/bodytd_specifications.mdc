@@ -1,9 +1,4 @@
 ---
-description: 
-globs: 
-alwaysApply: true
----
- ---
 description: BodyTD - A Biological Tower Defense Game
 globs: ["**/*.kt"]
 alwaysApply: false
@@ -94,7 +89,7 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 
 4. **Observer Pattern**
    - For game events and state changes
-   - Used in HUD updates (when Jetpack Compose isn't better)
+   - Used in HUD updates
 
 ### 3.2 UI Implementation
 - Uses Jetpack Compose for modern UI
@@ -153,4 +148,4 @@ com.example.myapplicationbodytd/
 - Power-ups and special abilities
 - Multiple maps and difficulty levels
 - Achievement system
-- Sound effects and background music
+- Sound effects and background music 
