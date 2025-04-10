@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: true
+---
+ ---
 description: BodyTD - A Biological Tower Defense Game
 globs: ["**/*.kt"]
 alwaysApply: false
@@ -21,15 +26,15 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 - **Tower Types**:
   1. **Mucus Tower**
      - Cost: 10
-     - Effect: Slows enemies
+     - Effect: Slows enemies and light damage
      - Range: 3
-     - Strategy: SlowEffectAttack
+     - Strategy: SlowEffectAttack and SingleTargetAttack
 
   2. **Macrophage Tower**
      - Cost: 20
      - Effect: Heavy damage
      - Range: 3
-     - Strategy: HeavyDamageAttack
+     - Strategy: SingleTargetAttack
 
   3. **Cough Tower**
      - Cost: 10
@@ -41,7 +46,6 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 - **Base Enemy Class**: Abstract class with:
   - Health: Int
   - Speed: Float
-  - Damage: Int
   - Reward: Int
   - Position: Int
 
@@ -49,19 +53,16 @@ BodyTD is a tower defense game with a biological theme where players defend agai
   1. **Virus**
      - Health: 50
      - Speed: 3.0
-     - Damage: 5
      - Reward: 10
 
   2. **Bacteria**
      - Health: 100
      - Speed: 1.0
-     - Damage: 10
      - Reward: 20
 
   3. **Fine Particle**
      - Health: 30
      - Speed: 1.0
-     - Damage: 2
      - Reward: 5
 
 ### 2.3 Game Flow
@@ -70,7 +71,7 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 - Money can be used to:
   - Place new towers
   - Upgrade existing towers
-- Game ends if 3 enemies reach the end
+- Game ends if 3 enemies reach the end as a loss or as a win after the third wave
 
 ## 3. Technical Architecture
 
@@ -89,7 +90,7 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 
 4. **Observer Pattern**
    - For game events and state changes
-   - Used in HUD updates
+   - Used in HUD updates (when Jetpack Compose isn't better)
 
 ### 3.2 UI Implementation
 - Uses Jetpack Compose for modern UI
@@ -100,27 +101,40 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 ### 3.3 File Structure
 ```
 com.example.myapplicationbodytd/
-├── ui/
-│   ├── GameView.kt
-│   ├── HUD.kt
-│   └── Map.kt
-├── towers/
-│   └── strategies/
-│       ├── Turret.kt
-│       ├── MucusTower.kt
-│       ├── MacrophageTower.kt
-│       └── CoughTower.kt
-├── enemies/
-│   ├── Enemy.kt
-│   ├── EnemyFactory.kt
-│   ├── Virus.kt
-│   ├── Bacteria.kt
-│   └── FineParticle.kt
-├── managers/
-│   ├── GameManager.kt
-│   └── WaveManager.kt
-└── util/
-    └── RenderableImage.kt
+│   MainActivity.kt
+│
+├───enemies
+│       Bacterie.kt
+│       Enemy.kt
+│       ParticuleFine.kt
+│       Virus.kt
+│
+├───managers
+│       GameManager.kt
+│       WaveManager.kt
+│
+├───models
+├───player
+│       player.kt
+│
+├───tower
+│       CoughTower.kt
+│       MacrophageTower.kt
+│       MucusTower.kt
+│       Tower.kt
+│
+├───towers
+│   └───strategies
+│           AttackStrategy.kt
+│           HeavyDamageAttack.kt
+│           PushBackAttack.kt
+│           SlowEffectAttack.kt
+│
+├───ui
+│       GameView.kt
+│       Map.kt
+│
+└───util
 ```
 
 ## 4. Development Guidelines
@@ -148,4 +162,4 @@ com.example.myapplicationbodytd/
 - Power-ups and special abilities
 - Multiple maps and difficulty levels
 - Achievement system
-- Sound effects and background music 
+- Sound effects and background music

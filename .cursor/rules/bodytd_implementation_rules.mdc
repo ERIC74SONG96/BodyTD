@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: true
+---
+ ---
 description: BodyTD Implementation Rules and Development Process
 globs: ["**/*.kt"]
 alwaysApply: false
@@ -91,7 +96,6 @@ alwaysApply: false
 
 2. **Performance Optimization**
    - Profile and optimize game loop
-   - Improve enemy path calculations
    - Optimize tower targeting
 
 3. **User Experience**
@@ -143,7 +147,7 @@ alwaysApply: false
 - Document public APIs
 - Add class-level documentation
 - Include usage examples
-- Document design decisions
+- Document design decisions, especially the relevant/interesting considerations, possible solutions, and final decision. 
 
 ## 5. Development Workflow
 
@@ -189,4 +193,127 @@ alwaysApply: false
 2. Measure current performance
 3. Implement optimization
 4. Measure improvement
-5. Document changes 
+5. Document changes
+
+You can document all the relevant new features/changes in the docs folder. Iteration by iteration.
+
+## 7. Interactive Development Process
+
+### 7.1 Decision-Making Framework
+1. **Problem Exploration**
+   - AI identifies potential challenges and trade-offs
+   - Presents multiple viable solutions
+   - Analyzes pros and cons of each approach
+   - Provides personal recommendation with reasoning
+   - Developer (you) makes the final decision
+
+2. **Key Decision Points**
+   - Architecture choices
+   - Design pattern selection
+   - UI/UX approaches
+   - Performance optimization strategies
+   - Testing methodologies
+
+### 7.2 Solution Discussion Format
+1. **Problem Statement**
+   - Clear description of the challenge
+   - Impact on current codebase
+   - Constraints and requirements
+
+2. **Solution Options**
+   - Minimum 2-3 different approaches
+   - For each option:
+     - Implementation details
+     - Advantages
+     - Disadvantages
+     - Resource requirements
+     - Future implications
+
+3. **AI Recommendation**
+   - Preferred solution with reasoning
+   - Based on:
+     - Current codebase state
+     - Project requirements
+     - Best practices
+     - Performance considerations
+     - Maintainability
+
+4. **Developer Decision**
+   - Final choice by you
+   - AI adapts and proceeds based on your decision
+   - Documents decision rationale for future reference
+
+### 7.3 Example Discussion Topics
+
+1. **Architecture Decisions**
+   - Game state management approaches
+     - Pure Kotlin state management
+     - Android ViewModel architecture
+     - Custom reactive system
+   - UI architecture patterns
+     - Pure Compose
+     - Hybrid Canvas/Compose
+     - Custom rendering engine
+
+2. **Implementation Strategies**
+   - Enemy pathfinding algorithms
+     - A* pathfinding
+     - Waypoint system
+     - Grid-based movement
+   - Tower targeting mechanisms
+     - Priority-based targeting
+     - Distance-based targeting
+     - Custom targeting strategies
+
+3. **Performance Optimizations**
+   - Rendering approaches
+     - Bitmap caching
+     - Sprite batching
+     - Custom drawing optimizations
+   - Game loop implementations
+     - Fixed time step
+     - Variable time step
+     - Hybrid approaches
+
+### 7.4 Collaboration Guidelines
+
+1. **Communication Style**
+   - Clear and concise explanations
+   - Technical depth when needed
+   - Visual diagrams for complex concepts
+   - Code examples for clarity
+
+2. **Iteration Process**
+   - Quick prototypes for validation
+   - Regular feedback cycles
+   - Adjustments based on testing
+   - Documentation of decisions
+
+3. **Knowledge Transfer**
+   - Explanation of technical concepts
+   - Best practices sharing
+   - Pattern recognition
+   - Learning opportunities
+
+### 7.5 Decision Documentation
+
+1. **Decision Record Format**
+   - Date and context
+   - Problem statement
+   - Considered alternatives
+   - Chosen solution
+   - Implementation notes
+
+2. **Future Reference**
+   - Impact on future development
+   - Related decisions
+   - Lessons learned
+   - Potential revisit points
+
+### 7.6 Flexibility Points
+- Architecture can evolve based on needs
+- Implementation details can be adjusted
+- Testing strategies can be modified
+- Performance targets can be revised
+- Feature priorities can be reordered 
+
