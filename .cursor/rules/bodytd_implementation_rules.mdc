@@ -1,9 +1,4 @@
 ---
-description: 
-globs: 
-alwaysApply: true
----
- ---
 description: BodyTD Implementation Rules and Development Process
 globs: ["**/*.kt"]
 alwaysApply: false
@@ -96,6 +91,7 @@ alwaysApply: false
 
 2. **Performance Optimization**
    - Profile and optimize game loop
+   - Improve enemy path calculations
    - Optimize tower targeting
 
 3. **User Experience**
@@ -147,7 +143,7 @@ alwaysApply: false
 - Document public APIs
 - Add class-level documentation
 - Include usage examples
-- Document design decisions, especially the relevant/interesting considerations, possible solutions, and final decision. 
+- Document design decisions
 
 ## 5. Development Workflow
 
@@ -194,8 +190,6 @@ alwaysApply: false
 3. Implement optimization
 4. Measure improvement
 5. Document changes
-
-You can document all the relevant new features/changes in the docs folder. Iteration by iteration.
 
 ## 7. Interactive Development Process
 
@@ -316,4 +310,3 @@ You can document all the relevant new features/changes in the docs folder. Itera
 - Testing strategies can be modified
 - Performance targets can be revised
 - Feature priorities can be reordered 
-
