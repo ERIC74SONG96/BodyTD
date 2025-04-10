@@ -1,0 +1,156 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ ---
+description: BodyTD - A Biological Tower Defense Game
+globs: ["**/*.kt"]
+alwaysApply: false
+---
+
+# BodyTD Game Specifications
+
+## 1. Game Overview
+BodyTD is a tower defense game with a biological theme where players defend against various pathogens using different types of defensive towers.
+
+## 2. Core Game Mechanics
+
+### 2.1 Towers
+- **Base Tower Class**: Abstract `Turret` class with:
+  - Cost: Int
+  - Range: Int (default 3)
+  - Attack Strategy: AttackStrategy interface
+  - Abstract methods: attackEnemy(), upgrade()
+
+- **Tower Types**:
+  1. **Mucus Tower**
+     - Cost: 10
+     - Effect: Slows enemies
+     - Range: 3
+     - Strategy: SlowEffectAttack
+
+  2. **Macrophage Tower**
+     - Cost: 20
+     - Effect: Heavy damage
+     - Range: 3
+     - Strategy: HeavyDamageAttack
+
+  3. **Cough Tower**
+     - Cost: 10
+     - Effect: Push back enemies
+     - Range: 3
+     - Strategy: PushBackAttack
+
+### 2.2 Enemies
+- **Base Enemy Class**: Abstract class with:
+  - Health: Int
+  - Speed: Float
+  - Damage: Int
+  - Reward: Int
+  - Position: Int
+
+- **Enemy Types**:
+  1. **Virus**
+     - Health: 50
+     - Speed: 3.0
+     - Damage: 5
+     - Reward: 10
+
+  2. **Bacteria**
+     - Health: 100
+     - Speed: 1.0
+     - Damage: 10
+     - Reward: 20
+
+  3. **Fine Particle**
+     - Health: 30
+     - Speed: 1.0
+     - Damage: 2
+     - Reward: 5
+
+### 2.3 Game Flow
+- Waves of enemies spawn at regular intervals
+- Players earn money by defeating enemies
+- Money can be used to:
+  - Place new towers
+  - Upgrade existing towers
+- Game ends if 3 enemies reach the end
+
+## 3. Technical Architecture
+
+### 3.1 Design Patterns
+1. **Strategy Pattern**
+   - Used for tower attack behaviors
+   - Implemented via AttackStrategy interface
+
+2. **Factory Pattern**
+   - EnemyFactory for creating different enemy types
+   - Centralized enemy creation logic
+
+3. **Singleton Pattern**
+   - GameManager for global game state
+   - WaveManager for wave control
+
+4. **Observer Pattern**
+   - For game events and state changes
+   - Used in HUD updates (when Jetpack Compose isn't better)
+
+### 3.2 UI Implementation
+- Uses Jetpack Compose for modern UI
+- GameView for rendering game elements
+- HUD for displaying game information
+- Responsive layout with proper scaling
+
+### 3.3 File Structure
+```
+com.example.myapplicationbodytd/
+├── ui/
+│   ├── GameView.kt
+│   ├── HUD.kt
+│   └── Map.kt
+├── towers/
+│   └── strategies/
+│       ├── Turret.kt
+│       ├── MucusTower.kt
+│       ├── MacrophageTower.kt
+│       └── CoughTower.kt
+├── enemies/
+│   ├── Enemy.kt
+│   ├── EnemyFactory.kt
+│   ├── Virus.kt
+│   ├── Bacteria.kt
+│   └── FineParticle.kt
+├── managers/
+│   ├── GameManager.kt
+│   └── WaveManager.kt
+└── util/
+    └── RenderableImage.kt
+```
+
+## 4. Development Guidelines
+
+### 4.1 Code Style
+- Follow Kotlin coding conventions
+- Use meaningful variable and function names
+- Document public APIs with KDoc comments
+- Keep functions focused and single-purpose
+
+### 4.2 Testing Requirements
+- Unit tests for core game logic
+- Integration tests for game flow
+- UI tests for critical user interactions
+
+### 4.3 Performance Considerations
+- Target 60 FPS for smooth gameplay
+- Optimize enemy path calculations
+- Efficient tower targeting algorithms
+- Memory management for game objects
+
+## 5. Future Enhancements
+- Additional tower types
+- New enemy varieties
+- Power-ups and special abilities
+- Multiple maps and difficulty levels
+- Achievement system
+- Sound effects and background music

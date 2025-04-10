@@ -125,22 +125,31 @@
 package com.example.myapplicationbodytd.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.myapplicationbodytd.util.RenderableImage
-
-
-import androidx.compose.runtime.*
-import kotlinx.coroutines.delay
+import androidx.compose.ui.unit.sp
 import com.example.myapplicationbodytd.R
+import com.example.myapplicationbodytd.managers.GameManager
+import com.example.myapplicationbodytd.towers.strategies.CoughTower
+import com.example.myapplicationbodytd.towers.strategies.MacrophageTower
+import com.example.myapplicationbodytd.towers.strategies.MucusTower
+import com.example.myapplicationbodytd.util.RenderableImage
+import kotlinx.coroutines.delay
 
+/**
+ * Composable that renders multiple images at specified positions
+ */
 @Composable
 fun MultiImageView(renderableImages: List<RenderableImage>) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -158,28 +167,172 @@ fun MultiImageView(renderableImages: List<RenderableImage>) {
     }
 }
 
+/**
+ * Composable that displays the game HUD
+ */
 @Composable
-fun GameView() {
-    // Create a mutable list of images
-    val images = remember {
-        mutableStateListOf(
-            RenderableImage(resId = R.drawable.mac, x = 0f, y = 0f),
-            RenderableImage(resId = R.drawable.mac, x = 50f, y = 50f)
-        )
-    }
-
-    // Animate the images: update positions every frame (~60 FPS)
-    LaunchedEffect(Unit) {
-        while (true) {
-            images.forEach { image ->
-                // Simple movement: increase x and y coordinates
-                image.x += 2f  // Move to the right
-                image.y += 1f  // Move downward
+fun GameHUD(
+    money: Int,
+    wave: Int,
+    time: Float,
+    onStartGame: () -> Unit,
+    onPlaceMucusTower: () -> Unit,
+    onPlaceMacrophageTower: () -> Unit,
+    onPlaceCoughTower: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = 0.7f))
+            .padding(8.dp)
+    ) {
+        // Game info
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Money: $$money",
+                color = Color.White,
+                fontSize = 16.sp
+            )
+            Text(
+                text = "Wave: $wave",
+                color = Color.White,
+                fontSize = 16.sp
+            )
+            Text(
+                text = "Time: ${String.format("%.1f", time)}s",
+                color = Color.White,
+                fontSize = 16.sp
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Tower buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = onPlaceMucusTower,
+                modifier = Modifier.weight(1f).padding(end = 4.dp),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text("Mucus (10$)")
             }
-            delay(16L) // Approximately 60 FPS
+            
+            Button(
+                onClick = onPlaceMacrophageTower,
+                modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text("Macro (20$)")
+            }
+            
+            Button(
+                onClick = onPlaceCoughTower,
+                modifier = Modifier.weight(1f).padding(start = 4.dp),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text("Cough (10$)")
+            }
         }
     }
+}
 
-    // Render the images
-    MultiImageView(renderableImages = images)
+/**
+ * Main game view composable
+ */
+@Composable
+fun GameView() {
+    // Get game manager instance
+    val gameManager = remember { GameManager.getInstance() }
+    
+    // Game state
+    var gameStarted by remember { mutableStateOf(false) }
+    var selectedTowerType by remember { mutableStateOf<String?>(null) }
+    
+    // Game time tracking
+    var gameTime by remember { mutableStateOf(0f) }
+    
+    // Start game loop
+    LaunchedEffect(gameStarted) {
+        if (gameStarted) {
+            gameManager.startGame()
+            
+            while (true) {
+                // Update game time
+                gameTime += 0.016f // Approximately 60 FPS
+                
+                // Update game state
+                gameManager.update(0.016f)
+                
+                // Check for game over
+                if (gameManager.isGameOver()) {
+                    gameStarted = false
+                    break
+                }
+                
+                // Wait for next frame
+                delay(16L)
+            }
+        }
+    }
+    
+    // Game content
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Game background
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF1E3A8A)) // Dark blue background
+        )
+        
+        // Game elements
+        if (gameStarted) {
+            // Render game objects
+            val renderableObjects by gameManager.renderableObjects.collectAsState()
+            MultiImageView(renderableImages = renderableObjects)
+            
+            // Game HUD
+            GameHUD(
+                money = gameManager.getMoney(),
+                wave = gameManager.getCurrentWave(),
+                time = gameTime,
+                onStartGame = { gameStarted = true },
+                onPlaceMucusTower = { selectedTowerType = "MucusTower" },
+                onPlaceMacrophageTower = { selectedTowerType = "MacrophageTower" },
+                onPlaceCoughTower = { selectedTowerType = "CoughTower" }
+            )
+        } else {
+            // Start game screen
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "BodyTD",
+                    color = Color.White,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                Button(
+                    onClick = { gameStarted = true },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(50.dp)
+                ) {
+                    Text("Start Game", fontSize = 18.sp)
+                }
+            }
+        }
+    }
 }

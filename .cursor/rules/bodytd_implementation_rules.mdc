@@ -1,0 +1,196 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ ---
+description: BodyTD Implementation Rules and Development Process
+globs: ["**/*.kt"]
+alwaysApply: false
+---
+
+# BodyTD Implementation Rules
+
+## 1. Development Philosophy
+
+### 1.1 Incremental Development
+- Build the game in small, testable increments
+- Each increment should be a working version of the game
+- Focus on one feature at a time
+- Complete each feature before moving to the next
+
+### 1.2 Test-Driven Development (TDD)
+- Write tests before implementing features
+- Follow the Red-Green-Refactor cycle:
+  1. Write a failing test (Red)
+  2. Implement the minimum code to pass the test (Green)
+  3. Refactor the code while keeping tests passing (Refactor)
+- Maintain test coverage above 80% for core game logic
+
+### 1.3 Refactoring Guidelines
+- Refactor when:
+  - Code duplication is detected
+  - A class has too many responsibilities
+  - Tests are difficult to write
+  - Code is hard to understand
+- Refactor in small, focused steps
+- Ensure all tests pass after each refactoring
+
+## 2. Implementation Order
+
+### 2.1 Phase 1: Core Game Engine
+1. **Basic Game Loop**
+   - Implement GameManager singleton
+   - Create basic game loop with fixed time step
+   - Add simple rendering system
+
+2. **Map and Path System**
+   - Implement basic map representation
+   - Create path system for enemies
+   - Add validation for tower placement
+
+3. **Basic UI Framework**
+   - Set up Jetpack Compose structure
+   - Implement basic HUD
+   - Create placeholder for game view
+
+### 2.2 Phase 2: Game Entities
+1. **Enemy System**
+   - Implement base Enemy class
+   - Create EnemyFactory
+   - Add basic enemy types (Virus, Bacteria, FineParticle)
+   - Implement enemy movement along path
+
+2. **Tower System**
+   - Implement base Turret class
+   - Create AttackStrategy interface
+   - Implement basic tower types
+   - Add tower targeting logic
+
+3. **Player System**
+   - Implement money management
+   - Add tower placement logic
+   - Create upgrade system
+
+### 2.3 Phase 3: Game Mechanics
+1. **Wave System**
+   - Implement WaveManager
+   - Add wave progression
+   - Create enemy spawning logic
+
+2. **Combat System**
+   - Implement damage calculation
+   - Add tower attack animations
+   - Create enemy death effects
+
+3. **Game State**
+   - Add win/lose conditions
+   - Implement game over screen
+   - Create restart functionality
+
+### 2.4 Phase 4: Polish and Optimization
+1. **Visual Improvements**
+   - Add proper graphics
+   - Implement animations
+   - Create visual effects
+
+2. **Performance Optimization**
+   - Profile and optimize game loop
+   - Optimize tower targeting
+
+3. **User Experience**
+   - Add sound effects
+   - Implement feedback mechanisms
+   - Create tutorial elements
+
+## 3. Testing Strategy
+
+### 3.1 Unit Testing
+- Test each class in isolation
+- Mock dependencies
+- Focus on:
+  - Enemy movement and behavior
+  - Tower targeting and attacks
+  - Money and resource management
+  - Wave progression
+
+### 3.2 Integration Testing
+- Test interactions between components
+- Verify:
+  - Enemy-tower interactions
+  - Wave-enemy spawning
+  - Player-tower placement
+  - Game state transitions
+
+### 3.3 UI Testing
+- Test user interactions
+- Verify:
+  - Tower placement
+  - Upgrade functionality
+  - HUD updates
+  - Game over conditions
+
+## 4. Code Organization
+
+### 4.1 File Structure
+- Keep related files together
+- Use clear, descriptive names
+- Follow package structure in specifications
+
+### 4.2 Code Style
+- Use consistent formatting
+- Follow Kotlin idioms
+- Write self-documenting code
+- Add comments for complex logic
+
+### 4.3 Documentation
+- Document public APIs
+- Add class-level documentation
+- Include usage examples
+- Document design decisions
+
+## 5. Development Workflow
+
+### 5.1 Daily Development Cycle
+1. Review current state
+2. Write tests for next feature
+3. Implement feature
+4. Run all tests
+5. Refactor if needed
+6. Commit changes with clear messages
+
+### 5.2 Feature Completion Checklist
+- [ ] Tests written and passing
+- [ ] Code reviewed and refactored
+- [ ] Documentation updated
+- [ ] Performance acceptable
+- [ ] No regressions in existing features
+
+### 5.3 Architecture Review Points
+- After completing each phase
+- When adding new tower types
+- When adding new enemy types
+- When performance issues arise
+- When code complexity increases
+
+## 6. Troubleshooting Guide
+
+### 6.1 Common Issues
+- Performance problems: Profile and optimize
+- Memory leaks: Check object lifecycle
+- UI glitches: Review rendering code
+- Game balance: Adjust parameters
+
+### 6.2 Debugging Process
+1. Reproduce the issue
+2. Isolate the problem
+3. Fix the root cause
+4. Add tests to prevent recurrence
+5. Document the solution
+
+### 6.3 Optimization Process
+1. Identify bottleneck
+2. Measure current performance
+3. Implement optimization
+4. Measure improvement
+5. Document changes (in the docs folder when very complex/multiple considerations or when interesting, like for the concepts)
