@@ -139,11 +139,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplicationbodytd.R
 import com.example.myapplicationbodytd.managers.GameManager
-import com.example.myapplicationbodytd.towers.strategies.CoughTower
-import com.example.myapplicationbodytd.towers.strategies.MacrophageTower
-import com.example.myapplicationbodytd.towers.strategies.MucusTower
 import com.example.myapplicationbodytd.util.RenderableImage
 import kotlinx.coroutines.delay
 
