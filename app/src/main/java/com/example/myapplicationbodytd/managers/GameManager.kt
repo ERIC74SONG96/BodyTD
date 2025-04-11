@@ -1,3 +1,5 @@
+package com.example.myapplicationbodytd.managers
+import class GameMap
 class GameManager {
     private val waveManager = WaveManager()
     private val map = GameMap()
