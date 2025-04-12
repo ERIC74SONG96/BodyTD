@@ -1,7 +1,7 @@
 package com.example.myapplicationbodytd.player
 
 import com.example.myapplicationbodytd.managers.GameManager
-import com.example.myapplicationbodytd.towers.MacrophageTower
+import com.example.myapplicationbodytd.towers.strategies.MacrophageTower
 import com.example.myapplicationbodytd.towers.MucusTower
 import com.example.myapplicationbodytd.towers.TouxTower
 import com.example.myapplicationbodytd.towers.Tower

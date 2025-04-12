@@ -1,5 +1,8 @@
 class HUD {
-    fun updateDisplay(money: Int, wave: Int, time: Float) {
+    fun updateDisplay(money: Int,
+                      wave: Int,
+                      time: Float)
+    {
         displayInfo(money, wave, time)
     }
 

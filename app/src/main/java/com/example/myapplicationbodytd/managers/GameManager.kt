@@ -1,5 +1,8 @@
 package com.example.myapplicationbodytd.managers
-import class GameMap
+
+import com.example.myapplicationbodytd.player.Player
+import com.example.myapplicationbodytd.ui.GameMap
+import com.example.myapplicationbodytd.ui.HUD
 
 
 class GameManager {
