@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: true
+---
+---
 description: BodyTD Implementation Rules and Development Process
 globs: ["**/*.kt"]
 alwaysApply: false
