@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Defines the recommended file structure and packaging principles for the BodyTD project.
+globs: ["**/*.kt"]
+alwaysApply: false
+---
+
+Organize the codebase into logical packages based on architectural layers and features to promote separation of concerns and maintainability. The root package is typically `com.example.myapplicationbodytd`.
+
+**Core Packages & Purpose:**
+
+*   **`game`**: Contains core game logic, entities, and mechanics, independent of the UI framework. This is the heart of the simulation.
+    *   **`game.entities`** (or `game.actors`): Base classes and specific types for game objects like `Enemy` and `Turret`.
+    *   **`game.mechanics`**: Core systems like combat logic, pathing, effects (e.g., `AttackStrategy` implementations could live here or in a sub-package like `game.mechanics.strategies`).
+    *   **`game.map`**: Represents the game board, grid, path information (`TileInfo`, path definitions).
+*   **`managers`**: Singleton or shared classes responsible for managing global game state and processes.
+    *   Example: `GameManager` (overall state, game loop), `WaveManager` (enemy spawning).
+*   **`player`**: Represents player-specific data and actions.
+    *   Example: Currency management, potentially interacting with tower placement logic.
+*   **`ui`**: Android-specific UI components built with Jetpack Compose. Should depend on `game` state (often via ViewModels) but not contain core game rules.
+    *   Example: `GameScreen` Composable, `HUD` Composable, `GameView` (Canvas rendering logic).
+*   **`util`**: Common utility functions, constants, or extension functions applicable across different layers.
+
+**Guidelines:**
+
+*   **Separation:** Keep core game logic (`game`, `managers`) decoupled from the Android UI (`ui`). The UI observes or receives data from the game layer.
+*   **Cohesion:** Group closely related classes together within appropriate packages (e.g., all enemy types under `game.entities`).
+*   **Naming:** Use clear, descriptive names for packages and files.
+*   **Evolution:** This structure is a starting guideline. Refactor and adapt as needed while maintaining these core principles. Place new files where they logically fit based on their responsibility. `MainActivity.kt` typically resides at the root or within a dedicated `app` or `ui.host` package.
+

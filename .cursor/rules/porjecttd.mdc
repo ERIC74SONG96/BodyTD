@@ -3,6 +3,11 @@ description:
 globs: 
 alwaysApply: true
 ---
+---
+description: 
+globs: 
+alwaysApply: true
+---
  ---
 description: BodyTD Basic Rules and Development Process
 globs: ["**/*.kt"]
@@ -15,7 +20,7 @@ alwaysApply: false
 - The player places towers along a predefined path to prevent enemies from reaching the end
 - Each tower has unique attributes (range, attack speed, attack type)
 - Enemies follow a predefined path from start to finish
-- Defeating enemies earns money, allowing tower purchases and upgrades
+- Defeating enemies earns money, allowing tower purchases.
 - The game is lost if 3 enemies successfully reach the end of the path
 
 ### 2. Object-Oriented Architecture
@@ -24,15 +29,15 @@ alwaysApply: false
 - Composition & Aggregation: Structure interactions between game elements (towers, enemies, game engine).
 - Observer Pattern: Implement event handling where it might be needed.
 - Encapsulation: Use private/protected properties to secure critical game attributes.
-- 2 Additional Design Patterns, e.g.: 
+- 2 Additional Design Patterns, e.g.:
   - Singleton: Manage game resources globally.
   - Factory Pattern: Generate enemy instances dynamically.
-Any other design pattern is fine if better but always justify why.
+  - Any other design pattern is fine if useful/better but always justify why.
 
 ### 3. User Interface & Features
-- Very Basic UI: Tower placement, resource display, remaining lives, no Menu Screen.
-- Graphics: Use Canvas, Jetpack Compose or the most appropriate technology for rendering as long it's not losing the OO learning experience driven approach.
-- User Input: Allow tower placement and upgrades.
+- Very Basic UI: Tower choice, resource display, remaining lives, no Start Menu Screen.
+- Graphics: As long it's not losing the O-O learning experience driven approach, use the most appropriate technology. (e.g Canvas, Jetpack Compose, Godot, libGdx with ktx+kotlin, etc...)
+- User Input: Allow tower placement.
 
 ### 4. Evaluation & Presentation
 - Ensure code clarity and adherence to SOLID principles!!!

@@ -3,6 +3,11 @@ description:
 globs: 
 alwaysApply: true
 ---
+---
+description: 
+globs: 
+alwaysApply: true
+---
  ---
 description: BodyTD - A Biological Tower Defense Game
 globs: ["**/*.kt"]
@@ -14,14 +19,14 @@ alwaysApply: false
 ## 1. Game Overview
 BodyTD is a tower defense game with a biological theme where players defend against various pathogens using different types of defensive towers.
 
-## 2. Core Game Mechanics
+## 2. Core Game Mechanics (example)
 
 ### 2.1 Towers
 - **Base Tower Class**: Abstract `Turret` class with:
   - Cost: Int
   - Range: Int (default 3)
   - Attack Strategy: AttackStrategy interface
-  - Abstract methods: attackEnemy(), upgrade()
+  - Abstract methods: attackEnemy()
 
 - **Tower Types**:
   1. **Mucus Tower**
@@ -70,7 +75,6 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 - Players earn money by defeating enemies
 - Money can be used to:
   - Place new towers
-  - Upgrade existing towers
 - Game ends if 3 enemies reach the end as a loss or as a win after the third wave
 
 ## 3. Technical Architecture
@@ -90,7 +94,7 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 
 4. **Observer Pattern**
    - For game events and state changes
-   - Used in HUD updates (when Jetpack Compose isn't better)
+   - Used in HUD updates (when Jetpack Compose isn't better or enough)
 
 ### 3.2 UI Implementation
 - Uses Jetpack Compose for modern UI
@@ -99,61 +103,17 @@ BodyTD is a tower defense game with a biological theme where players defend agai
 - Responsive layout with proper scaling
 
 ### 3.3 File Structure
-```
-com.example.myapplicationbodytd/
-│   MainActivity.kt
-│
-├───enemies
-│       Bacterie.kt
-│       Enemy.kt
-│       ParticuleFine.kt
-│       Virus.kt
-│
-├───managers
-│       GameManager.kt
-│       WaveManager.kt
-│
-├───models
-├───player
-│       player.kt
-│
-├───tower
-│       CoughTower.kt
-│       MacrophageTower.kt
-│       MucusTower.kt
-│       Tower.kt
-│
-├───towers
-│   └───strategies
-│           AttackStrategy.kt
-│           HeavyDamageAttack.kt
-│           PushBackAttack.kt
-│           SlowEffectAttack.kt
-│
-├───ui
-│       GameView.kt
-│       Map.kt
-│
-└───util
-```
+
+Per [bodytd_file_structure.mdc](mdc:.cursor/rules/bodytd_file_structure.mdc)
 
 ## 4. Development Guidelines
 
 ### 4.1 Code Style
 - Follow Kotlin coding conventions
 - Use meaningful variable and function names
-- Document public APIs with KDoc comments
 - Keep functions focused and single-purpose
 
-### 4.2 Testing Requirements
-- Unit tests for core game logic
-- Integration tests for game flow
-- UI tests for critical user interactions
-
-### 4.3 Performance Considerations
-- Target 60 FPS for smooth gameplay
-- Optimize enemy path calculations
-- Efficient tower targeting algorithms
+### 4.2 Performance Considerations
 - Memory management for game objects
 
 ## 5. Future Enhancements

@@ -1,0 +1,142 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Product Requirements Document: BodyTD (v1.2)
+
+## 1. Overview & Goal
+BodyTD is a 2D tower defense game for Android (Kotlin/Android Studio). Goal: A well-structured OOP/SOLID game demonstrating design patterns, delivering simple, functional gameplay. Players defend a biological pathway against pathogens using cell-themed towers. This document aims to be clear and comprehensive for Taskmaster-AI task generation.
+
+## 2. Core Gameplay Mechanics
+
+### 2.1 Game Loop & State
+-   **Fixed Time Step:** Game logic updates at a fixed rate (e.g., 60 updates/sec), independent of rendering framerate, ensuring deterministic behavior. The `GameManager` orchestrates this loop, calling update methods on active game objects.
+-   **State Management (State Pattern):** The `GameManager` (Singleton) utilizes the State pattern to manage distinct game phases:
+    -   `Initializing`: Setting up the map, player resources, managers.
+    -   `WaveStarting`: Brief pause/indicator before a wave begins.
+    -   `Playing`: Enemies spawning and moving, towers attacking, game logic progressing.
+    -   `WaveCleared`: Pause after all enemies of a wave are defeated, before next wave or win check.
+    -   `Won`: Player successfully defended all 3 waves. Game ends.
+    -   `Lost`: 3 enemies reached the path's end. Game ends.
+-   **Win/Loss Conditions:** Win after successfully clearing Wave 3. Loss if 3 enemies reach the designated path end tile.
+
+### 2.2 Map & Path
+-   **Grid:** A 2D grid represents the map (e.g., 15 columns x 10 rows). Defined by a structure like `List<List<TileInfo>>`. Coordinates are `(column, row)`, with `(0,0)` typically top-left.
+-   **Path:** A predefined sequence of adjacent grid coordinates (`List<Pair<Int, Int>>`) defining the enemy route from a specific start tile to a specific end tile.
+-   **Tile Information (`TileInfo`):** Each grid cell contains info: `isPlaceable: Boolean` (towers allowed here), `isPath: Boolean` (part of enemy route). Placeable tiles cannot be path tiles.
+-   **Tower Placement:** Towers can only be placed on `PLACEABLE` grid cells.
+
+### 2.3 Enemies
+-   **Base Type:** Abstract `Enemy` class containing:
+    -   `health: Int`
+    -   `speed: Float` (grid units per second)
+    -   `reward: Int` (currency granted on defeat)
+    -   `currentPathIndex: Int` (index in the path list)
+    -   `progressAlongSegment: Float` (0.0 to 1.0, interpolation between `path[currentIndex]` and `path[currentIndex+1]`)
+    -   Derived `position: Offset` (calculated based on path index and progress for rendering)
+    -   Status effects (e.g., `isSlowed`, `slowTimer`)
+-   **Movement:** Enemies move from `path[currentIndex]` towards `path[currentIndex+1]`, updating `progressAlongSegment` based on `speed` and `deltaTime`. When progress >= 1.0, advance `currentPathIndex`, reset progress, check for path end. Handle status effects modifying speed.
+-   **Types (MVP):**
+    1.  **Virus:** 50 HP, 3.0 Speed, 10 Reward.
+    2.  **Bacteria:** 100 HP, 1.0 Speed, 20 Reward.
+    3.  **Fine Particle:** 30 HP, 1.0 Speed, 5 Reward.
+-   **Factory (Factory Pattern):** An `EnemyFactory` handles the creation of specific enemy types.
+
+### 2.4 Towers
+-   **Base Type:** Abstract `Turret` class containing:
+    -   `cost: Int`
+    -   `range: Int` (grid units, e.g., 3)
+    -   `attackRate: Float` (attacks per second, e.g., 1.0)
+    -   `attackStrategy: AttackStrategy` (reference to strategy implementation)
+    -   `position: Pair<Int, Int>` (grid cell where placed)
+    -   Internal cooldown timer for `attackRate`.
+-   **Range Measurement:** Measured from tower center to enemy center (e.g., Euclidean distance).
+-   **Targeting:** Default logic: Target the single enemy that entered the tower's range *first* and is still within range. (Note: Simpler strategies like "closest to end" or "physically closest" exist if this proves complex).
+-   **Types (MVP) & Strategies (Strategy Pattern):**
+    1.  **Mucus Tower:** Cost 10, Range 3, Attack Rate 1.0/sec. Strategies: `SlowEffectAttack` (applies 50% slow for 2.0 sec), `SingleTargetAttack` (deals 5 damage).
+    2.  **Macrophage Tower:** Cost 20, Range 3, Attack Rate 0.5/sec. Strategy: `HeavyDamageAttack` (deals 25 damage).
+    3.  **Cough Tower:** Cost 10, Range 3, Attack Rate 1.0/sec. Strategy: `PushBackAttack` (moves enemy back 1.0 grid unit along the path).
+-   **Attack Execution:** When cooldown is ready and a valid target is in range, call `attackStrategy.execute(targetEnemy, tower)`.
+
+### 2.5 Economy
+-   Starting Currency: 50.
+-   Earn currency based on enemy `reward` when an enemy is defeated.
+-   Spend currency to place towers based on their `cost`.
+
+### 2.6 Waves
+-   **Wave Count:** 3 distinct waves for the MVP.
+-   **Wave Manager (Singleton):** `WaveManager` controls wave progression, enemy spawning (timing, type, count per wave) using the `EnemyFactory`. Triggered by `GameManager` state changes. Defines wave compositions (TBD, see Section 6).
+
+### 2.7 Combat
+-   Towers identify targets based on range and targeting logic.
+-   `AttackStrategy` implementations apply damage to `Enemy.health` or modify enemy state (speed, position via path progress/index).
+-   Enemies are removed from the game when `health <= 0` (granting reward) or when they reach the path end (decrementing lives).
+
+## 3. User Interface (UI) & User Experience (UX)
+
+### 3.1 Core UI (Jetpack Compose)
+-   **Game Screen:** Main composable holding the UI elements.
+-   **Game View (`Canvas` within Compose):** Renders the grid, path, enemies (simple shapes/static images), towers (simple shapes/static images), and potentially attack effects (lines/simple particles). Relies on game state provided by ViewModels/StateFlows.
+-   **HUD:** Displays critical info: Current Currency, Lives Remaining (starting at 3), Current Wave Number (1-3).
+-   **Tower Selection Panel:** Buttons for each available tower type (Mucus, Macrophage, Cough), showing cost.
+-   **Placement Input Flow:**
+    1.  Tap a Tower Button -> Enters "Placement Mode" for that type. Visually indicate placeable grid cells (e.g., overlay).
+    2.  Tap a highlighted, valid `PLACEABLE` grid cell -> If sufficient currency, place the tower, deduct cost, exit placement mode.
+    3.  Tap invalid cell, same tower button, or another tower button -> Cancel current placement mode.
+
+### 3.2 Graphics & Assets
+-   **Initial:** Use basic Compose `Canvas` drawing (e.g., colored circles/squares) as placeholders for towers and enemies.
+-   **Visual Feedback:** Plan for simple visual cues via `Canvas` for tower attacks (e.g., line to target), enemy taking damage (e.g., brief color flash), and enemy defeat (e.g., fade out). Defer loading image/sprite assets.
+
+### 3.3 Scope Limitations (MVP)
+-   No main menu or settings screen.
+-   No sound effects or music.
+-   No tower upgrades.
+-   No tower selling/removal mechanism.
+-   Only the 3 specified tower and enemy types.
+-   Only 1 map layout.
+
+## 4. Technical Requirements
+
+### 4.1 Platform & Build
+-   Target: Android API Level TBD (e.g., 26+)
+-   Language: Kotlin
+-   IDE: Android Studio
+-   Build System: Gradle with Kotlin DSL (`.gradle.kts`) and Version following conventions in [gradle_dependency_management.mdc](mdc:.cursor/rules/gradle_dependency_management.mdc)
+
+### 4.2 Architecture & Design Patterns
+-   **Core Principle:** Focus on Object-Oriented Programming (OOP) principles and SOLID design.
+-   **Required Patterns:**
+    -   Singleton: `GameManager`, `WaveManager`.
+    -   Factory: `EnemyFactory`.
+    -   Strategy: `AttackStrategy` for tower behaviors.
+    -   State: `GameManager` game phase management.
+-   **Consider:** Observer pattern *only if* complex, non-UI event handling is needed beyond Compose's reactive state capabilities (e.g., analytics logging, intricate cross-manager communication not suited for direct calls).
+-   **File Structure:** Adhere to the structure defined in [bodytd_file_structure.mdc](mdc:.cursor/rules/bodytd_file_structure.mdc)
+
+### 4.3 Non-Functional Requirements
+-   **Performance:** Aim for smooth game updates and rendering (~60 FPS target on mid-range devices). Efficient object management (pooling if necessary, though likely overkill for MVP).
+-   **Code Quality:** Follow standard Kotlin coding conventions. Write clear, well-documented (KDocs) code with focused functions/classes adhering to SOLID.
+-   **Testing:** Implement unit tests for core game logic (e.g., combat calculations, pathfinding logic, state transitions, wave completion).
+
+## 5. Development Philosophy
+-   Follow incremental development, building features in small, testable steps.
+-   Refactor proactively when code smells appear or structure can be improved.
+-   Prioritize establishing and maintaining a clear OOP/SOLID structure.
+
+## 6. Initial Balancing (Starting Points - Subject to Change)
+-   **Player:** Starting Currency: 50, Starting Lives: 3.
+-   **Enemies:**
+    -   Virus: 50 HP, 3.0 Speed, 10 Reward.
+    -   Bacteria: 100 HP, 1.0 Speed, 20 Reward.
+    -   Fine Particle: 30 HP, 1.0 Speed, 5 Reward.
+-   **Towers:**
+    -   Mucus: Cost 10, Range 3, Rate 1.0/s, Damage 5, Slow 50% for 2.0s.
+    -   Macrophage: Cost 20, Range 3, Rate 0.5/s, Damage 25.
+    -   Cough: Cost 10, Range 3, Rate 1.0/s, Pushback 1.0 unit.
+-   **Waves (Example TBD):**
+    -   Wave 1: 10 Virus, spawn interval 1.0s.
+    -   Wave 2: 15 Virus (interval 0.8s), 5 Bacteria (interval 1.5s, starts after Viruses).
+    -   Wave 3: 10 Bacteria (interval 1.0s), 20 Fine Particle (interval 0.5s, starts after Bacteria), 5 Virus (interval 0.5s, starts after Particles).
+    *(Note: All balancing values require playtesting and adjustment.)*

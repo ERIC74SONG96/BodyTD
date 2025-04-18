@@ -37,7 +37,7 @@ alwaysApply: false
 2. **Map and Path System**
    - Implement basic map representation
    - Create path system for enemies
-   - Add validation for tower placement
+   - Add validation and placement logic for tower placement
 
 3. **Basic UI Framework**
    - Set up Jetpack Compose structure
@@ -58,7 +58,6 @@ alwaysApply: false
 
 3. **Player System**
    - Implement money management
-   - Add tower placement logic
 
 ### 2.3 Phase 3: Game Mechanics
 1. **Wave System**

@@ -1,0 +1,116 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Guidelines for managing Gradle dependencies in Android Kotlin projects using modern conventions like Version Catalogs and Kotlin DSL.
+globs: ["**/*.gradle.kts", "**/libs.versions.toml"]
+alwaysApply: true
+---
+
+# Gradle Dependency Management Rules (Android Kotlin)
+
+These rules promote maintainable, consistent, and type-safe dependency management in your Android Kotlin project using the latest recommended practices.
+
+## 1. Prioritize Gradle Version Catalogs
+
+-   **Centralize Dependencies:** Define all dependency coordinates (group, artifact, version) in the `gradle/libs.versions.toml` file. This provides a single source of truth.
+-   **Structure:** Use the standard TOML sections:
+    -   `[versions]`: Define reusable version strings.
+    -   `[libraries]`: Define individual library coordinates using aliases (e.g., `androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }`).
+    -   `[bundles]`: Group related libraries together (e.g., `compose = ["androidx-compose-ui", "androidx-compose-material"]`).
+    -   `[plugins]`: Define Gradle plugin coordinates.
+-   **Type-Safe Accessors:** Gradle automatically generates type-safe accessors (e.g., `libs.androidx.core.ktx`, `libs.bundles.compose`, `libs.plugins.android.application`) for use in your `build.gradle.kts` files.
+
+**Example (`gradle/libs.versions.toml`):**
+
+```toml
+[versions]
+androidxCore = "1.13.1"
+composeBom = "2024.05.00"
+# ... other versions
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+# Compose BOM controls versions of individual Compose libraries
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" } # No version needed here when using BOM
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" } # No version needed here
+# ... other libraries
+
+[bundles]
+lifecycle = ["androidx-lifecycle-runtime-ktx", "androidx-lifecycle-viewmodel-ktx"]
+# ... other bundles
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+# ... other plugins
+```
+
+## 2. Use Kotlin DSL (`build.gradle.kts`)
+
+-   **Prefer `.gradle.kts`:** Use Kotlin DSL for your build scripts (`settings.gradle.kts`, `build.gradle.kts`) over Groovy (`.gradle`). It provides better type safety, IDE auto-completion, and refactoring capabilities.
+
+## 3. Leverage Platforms (BOMs - Bill of Materials)
+
+-   **Simplify Version Management:** For groups of related libraries (like Jetpack Compose, Firebase, Ktor), import their respective Bill of Materials (BOM) using `platform()`.
+-   **Declare BOM:** Define the BOM in your `libs.versions.toml` and add it as a dependency using `implementation(platform(libs.androidx.compose.bom))`.
+-   **Omit Individual Versions:** When depending on libraries managed by the BOM, you don't need to specify their versions individually in `libs.versions.toml` or the `dependencies` block. The BOM ensures compatible versions are used.
+
+**Example (`app/build.gradle.kts`):**
+
+```kotlin
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+}
+
+android {
+    // ... config ...
+}
+
+dependencies {
+    // ✅ DO: Use type-safe accessors from libs.versions.toml
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.bundles.lifecycle) // Example using a bundle
+
+    // ✅ DO: Implement Compose BOM
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui) // No version needed
+    implementation(libs.androidx.compose.material3) // No version needed
+    androidTestImplementation(platform(libs.androidx.compose.bom)) // Also for test dependencies
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4) // No version needed
+
+    // ❌ DON'T: Hardcode versions in build files
+    // implementation("androidx.core:core-ktx:1.13.1") // Hard to manage
+
+    // ❌ DON'T: Specify versions for BOM-managed artifacts
+    // implementation("androidx.compose.ui:ui:1.6.7") // Let the BOM handle this
+}
+```
+
+## 4. Use Standard Dependency Configurations
+
+-   **`implementation`:** Default choice. Dependencies are internal to the module.
+-   **`api`:** Use sparingly. Exposes the dependency transitively to consumers of your module. Needed only if types from the dependency are exposed in your module's public API.
+-   **`testImplementation`:** For dependencies only needed for local unit tests (`src/test`).
+-   **`androidTestImplementation`:** For dependencies only needed for instrumented tests (`src/androidTest`).
+-   **`debugImplementation`:** For dependencies only needed for debug builds.
+
+## 5. Keep Dependencies Updated
+
+-   **Regular Updates:** Periodically check for and apply dependency updates to benefit from bug fixes, performance improvements, and new features.
+-   **Tooling:** Consider using tools like:
+    -   Gradle Versions Plugin (`ben-manes.versions`) to check for updates.
+    -   Automated tools like RenovateBot or Dependabot if using Git hosting platforms.
+-   **Check Release Notes:** Review changelogs before applying major updates.
+
+## 6. (Advanced) Convention Plugins for Multi-Module Projects
+
+-   **For Larger Projects:** If your project grows to have many modules with similar build configurations (e.g., applying the same plugins, Android configuration, common dependencies), consider creating [Convention Plugins](mdc:https:/docs.gradle.org/current/samples/sample_convention_plugins.html) in the `build-logic` directory to encapsulate and reuse this logic. This is generally overkill for smaller projects.
+
+---
+
+*Remember to sync your project in Android Studio after modifying `build.gradle.kts` or `libs.versions.toml` files.*
