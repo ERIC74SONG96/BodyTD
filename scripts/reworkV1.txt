@@ -1,0 +1,210 @@
+---
+TaskID: VM-REFACTOR-OBSERVE
+Title: Refactor GameViewModel to Observe GameManager State Reactively
+Priority: High
+Type: Refactoring, Bug Fix
+Component: ViewModels, Managers
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\viewmodels\GameViewModel.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\GameManager.kt
+Description: >
+  **Problem:** The `GameViewModel.kt` currently contains its own game update loop (a `while(true)` block with `delay`) which manually polls `GameManager` for state updates (enemies, towers, currency, etc.). This duplicates game loop logic present in `GameManager`, is inefficient, and can lead to state inconsistencies between the core game logic and the UI layer.
+
+  **Goal:** Decouple the ViewModel's state updates from manual polling. Modify `GameManager` to expose its core game state (map, enemies, towers, currency, lives, currentWave) using a reactive pattern, specifically Kotlin's `StateFlow`. Refactor `GameViewModel` to remove its internal update loop and instead subscribe to (collect) these `StateFlow`s from `GameManager` to update its own state, which is then observed by the Compose UI.
+AcceptanceCriteria:
+  - The `while(true)` update loop within `GameViewModel.kt` is removed.
+  - `GameViewModel` utilizes `StateFlow` collectors (e.g., `viewModelScope.launch { gameManager.someStateFlow.collect { ... } }` or `.stateIn(...)`) to react to state changes from `GameManager`.
+  - `GameManager` exposes relevant game state properties (at minimum: enemies, towers, currency, lives, wave) as instances of `StateFlow` or `SharedFlow`.
+  - UI elements bound to `GameViewModel` state update automatically when the corresponding state in `GameManager` changes, without manual polling in the ViewModel.
+---
+TaskID: UI-FIX-STATE
+Title: Update GameScreen Composable to Use Live ViewModel State
+Priority: High
+Type: Bug Fix, UI
+Component: UI
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\ui\GameScreen.kt
+DependsOn: VM-REFACTOR-OBSERVE
+Description: >
+  **Problem:** The `GameScreen.kt` composable currently declares several state variables using `remember` with initial or placeholder values (e.g., `remember { mutableStateOf(emptyList<Enemy>()) }`, `remember { mutableIntStateOf(3) }` for lives). It does not correctly observe and use the actual, live game state data provided by `GameViewModel`.
+
+  **Goal:** Modify the `GameScreen` composable to remove these local `remember`ed placeholder states. Instead, it should directly observe and use the `State` objects exposed by the `GameViewModel` instance (e.g., `gameViewModel.enemies`, `gameViewModel.lives`, `gameViewModel.currency`). This ensures the UI always reflects the true game state managed by the backend and updated via the reactive streams established in `VM-REFACTOR-OBSERVE`.
+AcceptanceCriteria:
+  - `GameScreen.kt` no longer uses `remember { mutableStateOf(...) }` or similar for map, enemies, towers, lives, and wave data.
+  - State properties from the `gameViewModel` instance (e.g., `val enemies by gameViewModel.enemies`, `val lives by gameViewModel.lives`) are used directly to pass data to child composables (`HUD`, `GameCanvas`).
+  - The UI displayed by `GameScreen` and its children accurately reflects the game state changes originating from `GameManager` via the `GameViewModel`.
+---
+TaskID: GM-WIN-LOSS
+Title: Implement and Verify Game Win/Loss Condition Logic and State Transitions
+Priority: Medium
+Type: Feature Implementation, Game Logic
+Component: Managers, Game States
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\managers\GameManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\states\PlayingState.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\states\WaveClearedState.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\WaveManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\states\WonState.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\states\LostState.kt
+Description: >
+  **Problem:** The exact logic for detecting game win (completing the final wave, currently defined as wave 3) and game loss (player lives reaching 0) and triggering the corresponding state transitions (`WonState`, `LostState`) is either missing or needs verification. The responsibility for checking these conditions and initiating the state change needs to be clearly defined within the state machine.
+
+  **Goal:** Implement robust win/loss condition checking and ensure the game correctly transitions to the final states. The `PlayingState` should continuously monitor the player's lives and immediately trigger a transition to `LostState` via `GameManager.changeState()` if lives drop to 0 or below. Logic needs to be added, likely within `PlayingState` or potentially triggered by `WaveManager` reporting wave completion, to check if the completed wave was the final one (e.g., wave 3). If it was the final wave and it's completed, transition to `WonState`.
+AcceptanceCriteria:
+  - Inside `PlayingState.kt`'s update logic, a check exists for `GameManager.lives <= 0`. If true, `gameManager.changeState(LostState(gameManager))` is called.
+  - Logic exists (e.g., triggered after `WaveManager.checkWaveCompletion()` returns true) to check if `WaveManager.getCurrentWaveNumber()` equals `GameManager.MAX_WAVES`. If true, `gameManager.changeState(WonState(gameManager))` is called.
+  - The game correctly enters `LostState` when lives reach 0.
+  - The game correctly enters `WonState` upon successful completion of the final wave (Wave 3).
+---
+TaskID: VM-REFACTOR-COSTS
+Title: Centralize Tower Cost Data in Game Logic Layer
+Priority: Medium
+Type: Refactoring, Code Organization
+Component: ViewModels, Managers, Game Entities
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\viewmodels\GameViewModel.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\entities\Tower.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\entities\CoughTower.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\entities\MacrophageTower.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\entities\MucusTower.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\EconomyManager.kt
+Description: >
+  **Problem:** Tower costs are currently defined within a hardcoded `Map` (`towerCostsViewModel`) inside `GameViewModel.kt`. This violates separation of concerns, mixing UI-layer code with core game balance data. Changes to tower costs require modifying the ViewModel.
+
+  **Goal:** Relocate the definition of tower costs from `GameViewModel` to the appropriate game logic layer, making it the single source of truth. Preferred location: Define a `cost` property within each specific Tower subclass (e.g., `CoughTower`, `MacrophageTower`) possibly in their companion object or as an abstract property in the base `Tower` class. Alternatively, costs could be managed centrally by `EconomyManager`. `GameViewModel` and `GameManager` (when placing towers) should then retrieve these costs from this authoritative source.
+AcceptanceCriteria:
+  - The `towerCostsViewModel` map definition is removed from `GameViewModel.kt`.
+  - Each tower type (Mucus, Macrophage, Cough) has its associated cost defined within the game logic layer (e.g., `val cost: Int = 10` in the respective Tower subclass or its companion object).
+  - `GameViewModel` retrieves these costs when needed (e.g., for display in `TowerSelectionPanel`).
+  - `GameManager` (or `EconomyManager`) uses this authoritative cost when checking affordability and deducting currency during tower placement.
+---
+TaskID: GM-REFACTOR-DI
+Title: Review Singleton Pattern Usage and Evaluate Dependency Injection
+Priority: Medium
+Type: Refactoring, Architecture
+Component: ViewModels, Managers
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\viewmodels\GameViewModel.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\GameManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\WaveManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\EconomyManager.kt
+Description: >
+  **Problem:** The project currently uses Kotlin `object` declarations for core managers (`GameManager`, `WaveManager`, `EconomyManager`), implementing the Singleton pattern. While simple, this approach tightly couples components (like `GameViewModel`) to these specific singleton instances, making unit testing difficult (as singletons carry global state and cannot be easily mocked or replaced) and reducing flexibility.
+
+  **Goal:** Evaluate the trade-offs of the current singleton approach versus using Dependency Injection (DI). If testability or future flexibility is deemed important, refactor the code to use DI. This typically involves changing `object`s to `class`es and providing manager instances to dependent classes (like `GameViewModel`) through their constructors. A simple manual DI approach or a lightweight DI framework could be considered. If singletons are deemed acceptable for the project's scope, document this decision.
+AcceptanceCriteria:
+  - An explicit evaluation of Singleton vs. DI for the core managers is performed and documented (e.g., in code comments or commit message).
+  - EITHER: The `object` singletons are retained, and justification is noted.
+  - OR: `GameManager`, `WaveManager`, `EconomyManager` are converted to `class`es. Instances are created centrally (e.g., in `MainActivity` or an Application class) and passed via constructors to dependent classes like `GameViewModel`. The `GameViewModel` no longer directly references the `object` names.
+---
+TaskID: PLAYER-IMPL
+Title: Define Purpose and Implement or Remove Player Class
+Priority: Low
+Type: Feature Implementation / Cleanup
+Component: Player, Managers
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\player\Player.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\GameManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\EconomyManager.kt
+Description: >
+  **Problem:** A file `player\Player.kt` exists but is currently effectively empty (contains only package and class declaration). Its intended purpose within the game architecture is unclear, given that core player state like lives and currency are managed by `GameManager` and `EconomyManager`.
+
+  **Goal:** Decide the role of the `Player` class. If it's intended to hold future player-specific data (e.g., unlocked upgrades, player profile info, persistent stats), define its properties and integrate it appropriately. If the current management of lives/currency by the managers is sufficient and no other player-specific state is planned, remove the `Player.kt` file and the `player` directory to avoid confusion and simplify the project structure.
+AcceptanceCriteria:
+  - EITHER: `Player.kt` is implemented with clearly defined properties relevant to player state (beyond lives/currency) and integrated where needed (e.g., instantiated by `GameManager`).
+  - OR: The file `app\src\main\java\com\example\myapplicationbodytd\player\Player.kt` and the directory `app\src\main\java\com\example\myapplicationbodytd\player` are deleted.
+---
+TaskID: CLEANUP-UNUSED-UI
+Title: Remove Unused UI Placeholder Files GameView and Map
+Priority: Low
+Type: Cleanup
+Component: UI
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\ui\GameView.kt
+  - app\src\main\java\com\example\myapplicationbodytd\ui\Map.kt
+Description: >
+  **Problem:** The files `ui\GameView.kt` and `ui\Map.kt` exist within the UI package but appear to be empty placeholders (containing only minimal boilerplate code). Game rendering is handled by `GameCanvas.kt`, and core map logic resides in `game\map\Map.kt`. These UI files serve no purpose.
+
+  **Goal:** Remove the unused `GameView.kt` and `Map.kt` files from the `ui` package to declutter the codebase.
+AcceptanceCriteria:
+  - The file `app\src\main\java\com\example\myapplicationbodytd\ui\GameView.kt` is deleted.
+  - The file `app\src\main\java\com\example\myapplicationbodytd\ui\Map.kt` is deleted.
+---
+TaskID: REVIEW-ECONOMY
+Title: Review and Verify EconomyManager Logic
+Priority: Medium
+Type: Review, Verification
+Component: Managers
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\managers\EconomyManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\GameManager.kt
+Description: >
+  **Problem:** The economic system (gaining currency from enemies, spending on towers) is critical to gameplay, and its implementation in `EconomyManager.kt` needs verification for correctness. Potential issues include incorrect calculations, state management bugs, or improper interaction with `GameManager`.
+
+  **Goal:** Thoroughly review the `EconomyManager` implementation. Verify that currency is correctly initialized at the start of the game. Confirm that the `addCurrency` method (called by `GameManager.enemyDestroyed`) correctly increments the currency. Verify that a `spendCurrency` (or similar) method exists, is called correctly during tower placement (likely by `GameManager.placeTower`), correctly decrements currency, and potentially includes checks to prevent spending more than available. Ensure its internal currency state is managed reliably.
+AcceptanceCriteria:
+  - `EconomyManager` initializes currency to the correct starting value (e.g., defined in `Constants.kt` or within the manager).
+  - Calling the method responsible for adding currency correctly increases the internal currency count.
+  - Calling the method responsible for spending currency correctly decreases the internal currency count *only if* sufficient funds are available.
+  - The manager prevents the currency from becoming negative due to spending.
+  - Currency state accurately reflects all transactions.
+---
+TaskID: REVIEW-RENDERING
+Title: Review GameCanvas Rendering Accuracy and Efficiency
+Priority: Medium
+Type: Review, Verification
+Component: UI
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\ui\GameCanvas.kt
+  - app\src\main\java\com\example\myapplicationbodytd\ui\GameScreen.kt
+Description: >
+  **Problem:** The visual representation of the game state on the `GameCanvas` needs to be verified for both accuracy (drawing the right things in the right places) and efficiency (avoiding unnecessary drawing operations or performance issues). Bugs here directly impact the player's experience.
+
+  **Goal:** Review the drawing code within the `Canvas` composable in `GameCanvas.kt`. Verify that it correctly receives the current game state (map layout, list of enemies with positions, list of towers with positions, placement mode status, selected tower type) from `GameScreen`. Confirm that map tiles, paths, enemy sprites/shapes, and tower sprites/shapes are drawn in their correct locations based on the game state data. Verify that visual feedback for tower placement (e.g., range indicators, valid/invalid placement highlights) is rendered correctly when placement mode is active. Assess the drawing logic for potential performance optimizations (e.g., avoiding redraws of static elements, minimizing calculations within the draw scope).
+AcceptanceCriteria:
+  - The game map's grid and path are drawn as defined in the `game.map.Map` data.
+  - All active enemies from the `enemies` list are drawn at their current `position` coordinates.
+  - All placed towers from the `towers` list are drawn at their grid coordinates.
+  - When `placementMode` is true, appropriate visual feedback (e.g., range circle around cursor/tile, tile highlighting) is displayed based on `selectedTowerType`.
+  - Drawing operations are reasonably efficient, avoiding unnecessary work inside the `onDraw` lambda.
+---
+TaskID: REVIEW-SOLID
+Title: Analyze Core Components for SOLID Principle Adherence
+Priority: Low
+Type: Review, Code Quality
+Component: Core Components (Managers, ViewModel, Entities)
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\managers\GameManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\viewmodels\GameViewModel.kt
+  - (Review other Manager, State, Entity classes as appropriate)
+Description: >
+  **Problem:** Large classes or classes managing multiple aspects of the game (like `GameManager` potentially handling the game loop, state transitions, object registration, and event dispatching) can violate SOLID principles, particularly the Single Responsibility Principle (SRP). This can lead to code that is harder to understand, test, and maintain.
+
+  **Goal:** Analyze the primary classes (`GameManager`, `GameViewModel` especially after potential refactoring, `WaveManager`, potentially entity base classes) for adherence to SOLID principles (SRP, OCP, LSP, ISP, DIP). Document identified violations (e.g., "GameManager violates SRP by managing both the game loop timing and the high-level game state transitions"). For significant violations impacting maintainability, suggest concrete refactoring steps (e.g., "Extract game loop logic into a separate `GameLoop` class").
+AcceptanceCriteria:
+  - Key classes (`GameManager`, `GameViewModel`, `WaveManager`) are reviewed against SOLID principles.
+  - A documented summary of potential SOLID violations is produced (e.g., in code comments near the class definition or in a separate review note).
+  - Specific, actionable refactoring suggestions are provided for any identified violations that significantly hinder maintainability or testability.
+---
+TaskID: ADD-COMMENTS-OOP
+Title: Add KDoc Comments Identifying OOP Concepts/Patterns
+Priority: Low
+Type: Documentation
+Component: Key Classes/Interfaces
+AffectedFiles:
+  - app\src\main\java\com\example\myapplicationbodytd\managers\GameManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\managers\WaveManager.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\factories\EnemyFactory.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\mechanics\strategies\AttackStrategy.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\entities\Enemy.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\entities\Tower.kt
+  - app\src\main\java\com\example\myapplicationbodytd\game\states\GameState.kt
+Description: >
+  **Problem:** Project requirements mandate explicitly mentioning the Object-Oriented Programming concepts and Design Patterns used directly in the code via comments, but these comments are currently missing.
+
+  **Goal:** Add KDoc comments to the main classes, interfaces, and potentially key functions within the `AffectedFiles` list (and other relevant places). These comments should explicitly identify the OOP concept (e.g., Inheritance, Polymorphism, Encapsulation) or Design Pattern (e.g., Singleton, Factory, Strategy, State, Observer) being demonstrated by that code element, explaining its purpose in the design. Example: `/** Manages the overall game state using the Singleton pattern. */`, `/** Base class for all tower types, utilizing Inheritance. */`, `/** Defines the contract for different attack behaviors using the Strategy pattern. */`.
+AcceptanceCriteria:
+  - KDoc comments are added to the classes/interfaces listed in `AffectedFiles`.
+  - The added comments explicitly name the relevant OOP principle or design pattern demonstrated by the commented code element.
+  - The comments clarify the design rationale behind using that pattern/principle in context.
+---
