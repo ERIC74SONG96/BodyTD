@@ -10,7 +10,7 @@ class MucusTower(
     position: Pair<Int, Int>,
     gameManager: GameManager
 ) : Tower(
-    cost = 10,
+    cost = COST, // Use companion object constant
     range = 150f, // Assuming range 3 means 3 * tile size (50f)
     attackRate = 1.0f,
     attackStrategy = CompositeAttackStrategy(listOf(
@@ -20,5 +20,8 @@ class MucusTower(
     position = position,
     gameManager = gameManager
 ) {
+    companion object {
+        const val COST = 10
+    }
     // MucusTower specific properties or overrides can go here
 } 

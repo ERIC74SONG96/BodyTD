@@ -9,7 +9,7 @@ package com.example.myapplicationbodytd.game.map
  */
 class Map(
     val width: Int = 15,
-    val height: Int = 10
+    val height: Int = 15
 ) {
     // Initialize the grid with default TileInfo objects
     val grid: List<List<TileInfo>> = List(height) { 

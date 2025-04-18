@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import android.util.Log // Import Log
 //import com.example.myapplicationbodytd.game.entities.TowerType // Assuming TowerType enum exists
 import androidx.compose.ui.input.pointer.pointerInput
+import com.example.myapplicationbodytd.game.map.TileInfo // Import TileInfo
+import com.example.myapplicationbodytd.ui.TowerType // Import the correct UI TowerType
 
 // Colors for different tile types
 val pathColor = Color(0xFFC19A6B) // Tan/Brownish
@@ -100,7 +102,7 @@ fun GameCanvas(
 
         // Draw highlights if in placement mode
         if (placementMode && selectedTowerType != null) {
-            drawPlacementHighlights(map, tileSize, offsetX, offsetY)
+            drawPlacementHighlights(map, towers, tileSize, offsetX, offsetY)
         }
 
         drawTowers(towers, tileSize, offsetX, offsetY)
@@ -227,17 +229,53 @@ private fun DrawScope.drawTowers(towers: List<Tower>, tileSize: Float, offsetX: 
 }
 
 /**
+ * Draws placement highlights (green/red overlays) on grid tiles when in placement mode.
+ */
+private fun DrawScope.drawPlacementHighlights(
+    map: Map,
+    towers: List<Tower>, // Need tower list to check occupied tiles
+    tileSize: Float,
+    offsetX: Float,
+    offsetY: Float
+) {
+    val occupiedTiles = towers.map { it.position }.toSet()
+
+    for (y in 0 until map.height) {
+        for (x in 0 until map.width) {
+            val tile = map.grid[y][x]
+            val position = Pair(x, y)
+            val isOccupied = occupiedTiles.contains(position)
+
+            val highlightColor = when {
+                tile.isPlaceable && !isOccupied -> placeableHighlightColor
+                else -> nonPlaceableHighlightColor // Highlight non-placeable or occupied tiles red
+            }
+
+            // Only draw highlight if the tile is relevant for placement (placeable or not)
+            // Avoid highlighting path tiles unless needed
+            if (tile.isPlaceable || isOccupied) { // Or adjust condition as needed
+                 val topLeft = Offset(offsetX + x * tileSize, offsetY + y * tileSize)
+                 drawRect(
+                     color = highlightColor,
+                     topLeft = topLeft,
+                     size = Size(tileSize, tileSize)
+                 )
+             }
+        }
+    }
+}
+
+/**
  * Draws visual effects for tower attacks (e.g., lines to targets).
  */
 private fun DrawScope.drawAttackEffects(towers: List<Tower>, tileSize: Float, offsetX: Float, offsetY: Float) {
     towers.forEach { tower ->
         tower.currentTarget?.let { target ->
             // Draw only if the attack effect timer is active and target is still valid
-            if (!target.isDead && tower.attackEffectTimer > 0f) { 
+            if (!target.isDead && tower.attackEffectTimer > 0f) {
                 val startPoint = tower.worldPosition.let { Offset(it.x + offsetX, it.y + offsetY) }
                 val endPoint = target.position.let { Offset(it.x + offsetX, it.y + offsetY) }
 
-                // Determine color based on tower type (example)
                 val lineColor = when (tower) {
                     is MucusTower -> Color.Cyan
                     is MacrophageTower -> Color.Red
@@ -249,35 +287,8 @@ private fun DrawScope.drawAttackEffects(towers: List<Tower>, tileSize: Float, of
                     color = lineColor,
                     start = startPoint,
                     end = endPoint,
-                    strokeWidth = 4f,
+                    strokeWidth = 4f, // Make line thicker
                     cap = StrokeCap.Round
-                )
-            }
-        }
-    }
-}
-
-/**
- * Draws highlights on the grid to indicate valid placement locations.
- */
-private fun DrawScope.drawPlacementHighlights(map: Map, tileSize: Float, offsetX: Float, offsetY: Float) {
-    for (y in 0 until map.height) {
-        for (x in 0 until map.width) {
-            val canPlace = map.canPlaceTowerAt(x, y)
-            val color = if (canPlace) {
-                placeableHighlightColor
-            } else {
-                // Optionally highlight non-placeable tiles differently, or not at all
-                // nonPlaceableHighlightColor 
-                null // Draw nothing on non-placeable tiles for now
-            }
-
-            if (color != null) {
-                val topLeft = Offset(offsetX + x * tileSize, offsetY + y * tileSize)
-                drawRect(
-                    color = color,
-                    topLeft = topLeft,
-                    size = Size(tileSize, tileSize)
                 )
             }
         }

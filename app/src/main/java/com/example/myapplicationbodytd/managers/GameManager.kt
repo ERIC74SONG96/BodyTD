@@ -3,40 +3,81 @@ package com.example.myapplicationbodytd.managers
 import com.example.myapplicationbodytd.game.states.GameState
 import com.example.myapplicationbodytd.game.states.InitializingState
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.TimeSource
 import android.util.Log
 import com.example.myapplicationbodytd.game.entities.Enemy
+import com.example.myapplicationbodytd.game.entities.Tower
+import com.example.myapplicationbodytd.game.map.Map
 import com.example.myapplicationbodytd.game.states.LostState
+import com.example.myapplicationbodytd.game.states.PlayingState
+import com.example.myapplicationbodytd.game.states.WonState
+import com.example.myapplicationbodytd.managers.EconomyManager
 
 /**
  * Interface for game objects that need periodic updates.
+ * Part of the Observer pattern implicitly used by the game loop.
  */
 interface Updatable {
+    /**
+     * Update the state of the object.
+     * @param deltaTime Time elapsed since the last update.
+     */
     fun update(deltaTime: Float)
 }
 
 /**
- * Manages the overall game state, game loop, and coordination between systems.
- * Uses the Singleton Pattern.
- * Implements a fixed time step game loop and State Pattern for game phases.
+ * **Singleton Pattern:** Manages the overall game state, game loop, and coordination between systems.
+ * Ensures a single instance controls the game flow.
+ *
+ * **State Pattern:** Uses `GameState` subclasses (`InitializingState`, `PlayingState`, etc.)
+ * to manage different phases of the game (initialization, playing, win, loss).
+ * The `changeState` method facilitates transitions between states.
+ *
+ * **Observer Pattern (via StateFlow):** Exposes core game state (lives, currency, enemies, etc.)
+ * reactively using `StateFlow`. Other parts of the application (like ViewModels)
+ * can observe these flows to react to state changes without tight coupling.
+ *
+ * Implements a fixed time step game loop for deterministic updates.
  */
 object GameManager {
+    val gameMap = Map()
+
     private val gameObjects = mutableListOf<Updatable>()
-    private val activeEnemies = mutableListOf<Enemy>() // Keep track of active enemies
     private val scope = CoroutineScope(Dispatchers.Default + Job())
     private var gameLoopJob: Job? = null
-    private var currentState: GameState? = null // Current game state
 
     // Target update rate (e.g., 60 updates per second)
     private const val TARGET_UPDATES_PER_SECOND = 60
     private const val TIME_STEP_NANOS = 1_000_000_000L / TARGET_UPDATES_PER_SECOND
 
     // Game Progress Tracking
-    private var lives: Int = 3 // Starting lives
-    private var currentWave: Int = 0 // Starts at wave 0, first wave is 1
-    const val MAX_WAVES = 3 // As per specifications
-    const val MAX_LIVES_LOST = 3 // As per specifications
+    const val MAX_WAVES = 3
+    const val MAX_LIVES_LOST = 3
+    private const val STARTING_LIVES = 3
+
+    // --- Reactive Game State using StateFlow ---
+    private val _gameState = MutableStateFlow<GameState?>(null)
+    val gameState: StateFlow<GameState?> = _gameState.asStateFlow()
+
+    private val _lives = MutableStateFlow(STARTING_LIVES)
+    val lives: StateFlow<Int> = _lives.asStateFlow()
+
+    private val _currency = MutableStateFlow(EconomyManager.INITIAL_CURRENCY)
+    val currency: StateFlow<Int> = _currency.asStateFlow()
+
+    private val _currentWave = MutableStateFlow(0)
+    val currentWave: StateFlow<Int> = _currentWave.asStateFlow()
+
+    private val _activeEnemies = MutableStateFlow<List<Enemy>>(emptyList())
+    val activeEnemies: StateFlow<List<Enemy>> = _activeEnemies.asStateFlow()
+
+    private val _placedTowers = MutableStateFlow<List<Tower>>(emptyList())
+    val placedTowers: StateFlow<List<Tower>> = _placedTowers.asStateFlow()
 
     // Initialize and start the game loop
     init {
@@ -46,28 +87,36 @@ object GameManager {
     }
 
     fun registerGameObject(obj: Updatable) {
-        // TODO: Consider thread safety
+        // TODO: Consider thread safety if called from multiple threads
         if (!gameObjects.contains(obj)) {
             gameObjects.add(obj)
-            if (obj is Enemy) { // Add to specific enemy list if it's an Enemy
-                activeEnemies.add(obj)
+            when (obj) {
+                is Enemy -> _activeEnemies.update { list -> list + obj }
+                is Tower -> _placedTowers.update { list -> list + obj }
+                // Add other types if needed
             }
         }
     }
 
     fun unregisterGameObject(obj: Updatable) {
-        // TODO: Consider thread safety
+        // TODO: Consider thread safety if called from multiple threads
         if (gameObjects.remove(obj)) {
-             if (obj is Enemy) {
-                activeEnemies.remove(obj)
-            }
+             when (obj) {
+                 is Enemy -> _activeEnemies.update { list -> list - obj }
+                 is Tower -> _placedTowers.update { list -> list - obj }
+                 // Add other types if needed
+             }
         }
     }
 
     fun changeState(newState: GameState) {
-        currentState?.exit() // Call exit on the old state
-        currentState = newState
-        currentState?.enter() // Call enter on the new state
+        val oldState = _gameState.value
+        if (oldState != newState) {
+            Log.d("GameManager", "Changing state from ${oldState?.javaClass?.simpleName} to ${newState.javaClass.simpleName}")
+            oldState?.exit() // Call exit on the old state
+            _gameState.value = newState // Update the StateFlow
+            newState.enter() // Call enter on the new state
+        }
     }
 
     private fun startGameLoop() {
@@ -99,23 +148,28 @@ object GameManager {
     }
 
     private fun updateGame(deltaTime: Float) {
-        // Update the current state
-        currentState?.update(deltaTime)
+        // Update the current state FIRST - it might change game objects or game state itself
+        _gameState.value?.update(deltaTime)
 
         // Update all registered game objects
         // Create a copy to avoid ConcurrentModificationException if list is modified during iteration
-        val objectsToUpdate = ArrayList(gameObjects)
+        // Note: State updates should handle adding/removing objects safely now
+        val objectsToUpdate = ArrayList(gameObjects) // Still use copy for iteration safety
         for (obj in objectsToUpdate) {
-            obj.update(deltaTime)
+            // Check if object might have been unregistered by state update or another object's update
+             if (gameObjects.contains(obj)) {
+                 try {
+                     obj.update(deltaTime)
+                 } catch (e: Exception) {
+                     Log.e("GameManager", "Error updating game object: ${obj::class.simpleName}", e)
+                     // Decide how to handle: remove object, log, etc.
+                     // For now, just log and continue
+                 }
+            }
         }
 
-        // Placeholder for win/loss checks - will likely move into specific states
-        if (lives <= 0 && currentState !is LostState) {
-             Log.w("GameManager", "Loss condition met!")
-            // changeState(LostState(this)) // Move check to PlayingState update
-        }
-
-        // TODO: Implement win/loss condition checks here
+        // Win/loss checks are handled within specific states (e.g., PlayingState)
+        // Example: PlayingState now checks lives and wave completion and calls changeState
     }
 
     fun stopGameLoop() {
@@ -127,39 +181,60 @@ object GameManager {
         scope.cancel()
     }
 
-    // --- Event Reporting Methods (called by other systems) ---
+    // --- Event Reporting Methods (Update StateFlows) ---
     fun enemyReachedEnd(enemy: Enemy) {
         Log.d("GameManager", "Enemy ${enemy.getType()} reached the end!")
-        lives--
-        Log.d("GameManager", "Lives remaining: $lives")
+        _lives.update { currentLives -> maxOf(0, currentLives - 1) } // Ensure lives don't go below 0
+        Log.d("GameManager", "Lives remaining: ${_lives.value}")
         WaveManager.notifyEnemyRemoved()
-        unregisterGameObject(enemy)
+        unregisterGameObject(enemy) // This will update _activeEnemies StateFlow
 
-        // Loss condition check moved to PlayingState
+        // Loss condition check is handled by PlayingState observing the lives StateFlow or via direct check in update
+        // if (_lives.value <= 0 && _gameState.value is PlayingState) {
+        //     changeState(LostState(this))
+        // }
     }
 
     fun enemyDestroyed(enemy: Enemy) {
         Log.d("GameManager", "Enemy ${enemy.getType()} destroyed! Awarding ${enemy.reward} currency.")
-        EconomyManager.addCurrency(enemy.reward) // Add currency
+        EconomyManager.addCurrency(enemy.reward) // Update EconomyManager's state
+        _currency.value = EconomyManager.getCurrentCurrency() // Use correct method name
         WaveManager.notifyEnemyRemoved()
-        unregisterGameObject(enemy)
+        unregisterGameObject(enemy) // This will update _activeEnemies StateFlow
+    }
+
+    fun placeTower(tower: Tower, cost: Int): Boolean {
+        if (EconomyManager.spendCurrency(cost)) {
+            _currency.value = EconomyManager.getCurrentCurrency() // Use correct method name
+            registerGameObject(tower) // This will update _placedTowers StateFlow
+            Log.d("GameManager", "Placed tower ${tower.javaClass.simpleName}. Currency remaining: ${_currency.value}")
+            return true
+        }
+        Log.w("GameManager", "Not enough currency to place tower ${tower.javaClass.simpleName}. Needed: $cost, Have: ${EconomyManager.getCurrentCurrency()}") // Use correct method name in log
+        return false
     }
 
     fun startNextWave() {
-        currentWave++
-        Log.d("GameManager", "Starting Wave $currentWave")
-        // TODO: Tell WaveManager to start spawning for currentWave (Task 8)
+        _currentWave.update { it + 1 }
+        Log.d("GameManager", "Starting Wave ${_currentWave.value}")
+        // TODO: Tell WaveManager to start spawning for currentWave (Task 8 logic still needed)
+        if (_gameState.value is PlayingState) {
+             (_gameState.value as PlayingState).startWave(_currentWave.value)
+        } else {
+            Log.w("GameManager", "Tried to start next wave, but not in PlayingState.")
+        }
     }
 
-    // --- Getters for UI --- (Potentially replace with StateFlow/LiveData later)
-    fun getCurrentLives(): Int = lives
-    fun getCurrentWave(): Int = currentWave
-
-    /**
-     * Returns a snapshot of the currently active enemies.
-     */
-    fun getEnemies(): List<Enemy> {
-        // Return a copy to prevent modification issues outside GameManager
-        return ArrayList(activeEnemies)
+    // --- Map Interaction ---
+    fun canPlaceTowerAt(x: Int, y: Int): Boolean {
+        // TODO: Add checks for existing towers at (x, y) if needed
+        return gameMap.canPlaceTowerAt(x, y)
     }
+    // ---------------------
+
+    // --- Remove simple getters, UI will observe StateFlows ---
+    // fun getCurrentLives(): Int = _lives.value // No longer needed
+    // fun getCurrentWave(): Int = _currentWave.value // No longer needed
+    // fun getEnemies(): List<Enemy> = _activeEnemies.value // No longer needed, observe StateFlow
+    // fun getTowers(): List<Tower> = _placedTowers.value // No longer needed, observe StateFlow
 }

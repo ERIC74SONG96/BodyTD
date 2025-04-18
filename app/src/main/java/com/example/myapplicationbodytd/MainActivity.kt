@@ -9,8 +9,17 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.example.myapplicationbodytd.ui.GameScreen
+// Remove unused Map and WaveManager imports if GameManager is singleton
+// import com.example.myapplicationbodytd.game.map.Map
+// import com.example.myapplicationbodytd.managers.WaveManager
+import com.example.myapplicationbodytd.managers.GameManager // Import the singleton object
+import com.example.myapplicationbodytd.viewmodels.GameViewModelFactory
 
 class MainActivity : ComponentActivity() {
+
+    // No need for lazy delegate for singleton objects
+    // private val gameManager by lazy { GameManager(Map(), WaveManager()) } // REMOVE THIS LINE
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -20,7 +29,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = colorScheme.background
                 ) {
-                    GameScreen() // Call the main game screen composable
+                    // Create the Factory, passing the singleton GameManager instance directly
+                    val viewModelFactory = GameViewModelFactory(GameManager)
+                    // Pass the factory to GameScreen
+                    GameScreen(viewModelFactory = viewModelFactory)
                 }
             }
         }

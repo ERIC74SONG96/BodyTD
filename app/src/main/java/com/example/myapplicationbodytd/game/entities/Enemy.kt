@@ -8,8 +8,16 @@ import kotlin.math.max
 import android.util.Log
 
 /**
- * Base class for all enemy types in the game.
- * Defines common properties and behaviors.
+ * **Inheritance:** Base class for all enemy types.
+ * Defines common properties (health, speed, reward, path, position) and behaviors
+ * (movement `move()`, taking damage `takeDamage()`, `onDeath()`, `onReachEnd()`).
+ *
+ * **Encapsulation:** Uses `protected` or `private set` where appropriate to control
+ * direct modification of internal state (e.g., `position`, `isSlowed`).
+ *
+ * **Polymorphism:** Subclasses (`Virus`, `Bacteria`, etc.) inherit from `Enemy` and can
+ * override methods like `updateStatusEffects`, `onDeath` to provide specialized behavior.
+ * The abstract `getType()` method forces subclasses to provide their specific type identifier.
  */
 abstract class Enemy(
     // Core stats
@@ -223,11 +231,11 @@ abstract class Enemy(
     }
 
     /**
-     * Abstract method to get the specific type of the enemy.
-     * To be implemented by concrete subclasses.
-     * @return An identifier for the enemy type (e.g., an Enum or String).
+     * Abstract method demonstrating polymorphism.
+     * Each concrete enemy subclass must implement this to return its specific type.
+     * @return An identifier for the enemy type (e.g., a String).
      */
-    abstract fun getType(): String // Or an Enum: EnemyType
+    abstract fun getType(): String
 
     /**
      * Virtual method called when the enemy is hit by an attack (before damage calculation).

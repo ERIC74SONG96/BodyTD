@@ -18,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,16 +31,16 @@ import androidx.compose.ui.unit.dp
 /**
  * Heads-Up Display composable. Shows game state information like currency, lives, and wave number.
  *
- * @param currencyState The current player currency as a State object.
- * @param livesState The current player lives as a State object.
- * @param waveState The current wave number as a State object.
+ * @param currency The current player currency.
+ * @param lives The current player lives.
+ * @param wave The current wave number.
  */
 @Composable
 fun HUD(
     modifier: Modifier = Modifier,
-    currencyState: State<Int>,
-    livesState: State<Int>,
-    waveState: State<Int>
+    currency: Int,
+    lives: Int,
+    wave: Int
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -52,9 +53,9 @@ fun HUD(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            HudElement(icon = Icons.Default.MonetizationOn, value = currencyState.value.toString(), contentDescription = "Currency")
-            HudElement(icon = Icons.Default.Favorite, value = livesState.value.toString(), contentDescription = "Lives")
-            HudElement(icon = Icons.Default.Label, value = waveState.value.toString(), contentDescription = "Wave")
+            HudElement(icon = Icons.Default.MonetizationOn, value = currency.toString(), contentDescription = "Currency")
+            HudElement(icon = Icons.Default.Favorite, value = lives.toString(), contentDescription = "Lives")
+            HudElement(icon = Icons.Default.Label, value = wave.toString(), contentDescription = "Wave")
         }
     }
 }
@@ -91,15 +92,11 @@ private fun HudElement(
 @Preview(showBackground = true)
 @Composable
 fun HUDPreview() {
-    val currency = remember { mutableStateOf(100) }
-    val lives = remember { mutableStateOf(3) }
-    val wave = remember { mutableStateOf(1) }
-
     MaterialTheme { // Apply MaterialTheme for preview
         HUD(
-            currencyState = currency,
-            livesState = lives,
-            waveState = wave
+            currency = 100,
+            lives = 3,
+            wave = 1
         )
     }
 } 

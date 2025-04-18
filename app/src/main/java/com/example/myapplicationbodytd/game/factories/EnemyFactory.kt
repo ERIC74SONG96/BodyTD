@@ -7,8 +7,10 @@ import com.example.myapplicationbodytd.game.entities.Virus
 import com.example.myapplicationbodytd.managers.GameManager
 
 /**
- * Factory for creating different types of enemies.
- * Uses the Factory Pattern.
+ * **Factory Pattern:** Centralizes the creation logic for different types of `Enemy` objects.
+ * Provides methods (`createVirus`, `createBacteria`, `createEnemy`) to instantiate specific
+ * enemy subclasses, decoupling the client code (like `WaveManager`) from the concrete
+ * enemy constructors.
  */
 object EnemyFactory {
 

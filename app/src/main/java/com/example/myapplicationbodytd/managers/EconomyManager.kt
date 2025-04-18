@@ -10,10 +10,10 @@ import android.util.Log
  */
 object EconomyManager {
 
-    private const val STARTING_CURRENCY = 50
+    const val INITIAL_CURRENCY = 50
 
     // Use StateFlow for reactive UI updates
-    private val _currency = MutableStateFlow(STARTING_CURRENCY)
+    private val _currency = MutableStateFlow(INITIAL_CURRENCY)
     val currency = _currency.asStateFlow() // Expose as immutable StateFlow
 
     init {
@@ -68,7 +68,7 @@ object EconomyManager {
      * Resets the currency to the starting amount.
      */
     fun reset() {
-        Log.d("EconomyManager", "Resetting currency to $STARTING_CURRENCY")
-        _currency.value = STARTING_CURRENCY
+        Log.d("EconomyManager", "Resetting currency to $INITIAL_CURRENCY")
+        _currency.value = INITIAL_CURRENCY
     }
 } 

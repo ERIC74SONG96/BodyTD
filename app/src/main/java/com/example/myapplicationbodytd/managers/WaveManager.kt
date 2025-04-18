@@ -25,8 +25,10 @@ data class WaveDefinition(
 }
 
 /**
- * Manages the progression of enemy waves, including spawning.
- * Follows the Singleton pattern (as a Kotlin object).
+ * **Singleton Pattern:** Manages the progression of enemy waves, including defining wave structures
+ * and controlling the spawning timing based on `WaveDefinition`s.
+ *
+ * Tracks the current wave status and notifies `GameManager` about enemy removals.
  */
 object WaveManager : Updatable {
 

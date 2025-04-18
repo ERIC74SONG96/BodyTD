@@ -6,50 +6,52 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplicationbodytd.game.entities.Enemy
 import com.example.myapplicationbodytd.game.entities.Tower
-//import com.example.myapplicationbodytd.game.entities.TowerType
-import com.example.myapplicationbodytd.managers.GameManager // Assume GameManager exists
+import com.example.myapplicationbodytd.game.entities.CoughTower // Import specific towers
+import com.example.myapplicationbodytd.game.entities.MacrophageTower
+import com.example.myapplicationbodytd.game.entities.MucusTower
+import com.example.myapplicationbodytd.managers.GameManager
 import com.example.myapplicationbodytd.game.map.Map
 import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import com.example.myapplicationbodytd.ui.TowerType
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-
-// Define costs here temporarily, ideally fetch from game data/GameManager
-val towerCostsViewModel = mapOf(
-    TowerType.MUCUS to 10,
-    TowerType.MACROPHAGE to 20,
-    TowerType.COUGH to 10
-)
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.CancellationException
+import com.example.myapplicationbodytd.managers.WaveManager
+import com.example.myapplicationbodytd.game.states.GameState // Import GameState
+import kotlinx.coroutines.flow.StateFlow // Import StateFlow
 
 /**
  * ViewModel for the main Game Screen.
- * Manages the game state and handles user interactions.
+ * Manages the game state exposed to the UI by observing GameManager's StateFlows.
  */
-class GameViewModel : ViewModel() {
+class GameViewModel(private val gameManager: GameManager) : ViewModel() {
 
     // --- Game Logic Integration ---
-    // TODO: Properly inject or retrieve singleton instances
-    private val gameManager = GameManager // Placeholder instantiation
 
-    // --- Game State ---
-    // Get initial state from GameManager and observe changes
-    // TODO: Use Flows or other observable patterns from GameManager if available
-    private val _map = mutableStateOf(gameManager.map) // Assuming GameManager exposes map
+    // --- Game State (exposed to UI via Compose State) ---
+    // These are updated by collectors observing GameManager's StateFlows
+
+    // TODO: Map state - Assuming GameManager provides a static map or a Flow for it.
+    // For now, let's assume map doesn't change frequently after init.
+    private val _map = mutableStateOf<Map>(gameManager.gameMap) // Corrected reference
     val map: State<Map> = _map
 
-    private val _enemies = mutableStateOf(gameManager.enemies) // Assuming GameManager exposes enemies
+    private val _enemies = mutableStateOf<List<Enemy>>(emptyList())
     val enemies: State<List<Enemy>> = _enemies
 
-    private val _towers = mutableStateOf(gameManager.towers) // Assuming GameManager exposes towers
+    private val _towers = mutableStateOf<List<Tower>>(emptyList())
     val towers: State<List<Tower>> = _towers
 
-    private val _currency = mutableStateOf(gameManager.currency) // Assuming GameManager exposes currency
+    private val _currency = mutableIntStateOf(0)
     val currency: State<Int> = _currency
 
-    private val _lives = mutableStateOf(gameManager.lives) // Assuming GameManager exposes lives
+    private val _lives = mutableIntStateOf(0)
     val lives: State<Int> = _lives
 
-    private val _wave = mutableStateOf(gameManager.currentWave) // Assuming GameManager exposes wave
+    private val _wave = mutableIntStateOf(0)
     val wave: State<Int> = _wave
 
     // --- Placement State ---
@@ -59,45 +61,104 @@ class GameViewModel : ViewModel() {
     private val _selectedTowerForPlacement = mutableStateOf<TowerType?>(null)
     val selectedTowerForPlacement: State<TowerType?> = _selectedTowerForPlacement
 
+    // --- Game State Flows (Observed by UI) ---
+    // These are managed internally by observing GameManager
+    // Remove the conflicting direct exposures:
+    // val gameState: StateFlow<GameState?> = gameManager.gameState
+    // val lives: StateFlow<Int> = gameManager.lives
+    // val currency: StateFlow<Int> = gameManager.currency
+    // val currentWave: StateFlow<Int> = gameManager.currentWave
+    // val activeEnemies: StateFlow<List<Enemy>> = gameManager.activeEnemies
+    // val placedTowers: StateFlow<List<Tower>> = gameManager.placedTowers
+
     init {
-        Log.d("GameViewModel", "Initializing GameViewModel and starting game loop...")
-        // Start the game loop when ViewModel is created
-        startGameLoop()
+        Log.d("GameViewModel", "Initializing GameViewModel and starting observers...")
+        observeGameManagerStates()
     }
 
-    private fun startGameLoop() {
+    private fun observeGameManagerStates() {
+        Log.d("GameViewModel", "Setting up collectors for GameManager StateFlows...")
+
         viewModelScope.launch {
-            var lastFrameTime = System.nanoTime()
-            while (true) { // TODO: Add condition to stop the loop (e.g., game over state)
-                val currentTime = System.nanoTime()
-                val deltaTime = (currentTime - lastFrameTime) / 1_000_000_000.0f // Delta time in seconds
-                lastFrameTime = currentTime
-
-                // Update game state via GameManager
-                gameManager.update(deltaTime)
-
-                // Update ViewModel state based on GameManager state
-                // TODO: Optimize this - ideally observe flows from GameManager
-                _map.value = gameManager.map
-                _enemies.value = gameManager.enemies
-                _towers.value = gameManager.towers
-                _currency.value = gameManager.currency
-                _lives.value = gameManager.lives
-                _wave.value = gameManager.currentWave
-
-                delay(16) // Aim for ~60 FPS (adjust as needed)
+            try {
+                gameManager.lives.onEach { Log.d("GameViewModel", "Observed lives: $it") }.collect { _lives.value = it }
+            } catch (e: CancellationException) {
+                Log.d("GameViewModel", "Lives collection cancelled.")
+                throw e // Re-throw cancellation exceptions
+            } catch (e: Exception) {
+                Log.e("GameViewModel", "Error collecting lives state", e)
+                // Handle error appropriately, e.g., show error message
             }
         }
+        viewModelScope.launch {
+             try {
+                 gameManager.currency.onEach { Log.d("GameViewModel", "Observed currency: $it") }.collect { _currency.value = it }
+            } catch (e: CancellationException) {
+                Log.d("GameViewModel", "Currency collection cancelled.")
+                throw e
+            } catch (e: Exception) {
+                Log.e("GameViewModel", "Error collecting currency state", e)
+            }
+        }
+        viewModelScope.launch {
+            try {
+                gameManager.currentWave.onEach { Log.d("GameViewModel", "Observed wave: $it") }.collect { _wave.value = it }
+            } catch (e: CancellationException) {
+                Log.d("GameViewModel", "Wave collection cancelled.")
+                throw e
+            } catch (e: Exception) {
+                Log.e("GameViewModel", "Error collecting wave state", e)
+            }
+        }
+        viewModelScope.launch {
+            try {
+                gameManager.gameState.onEach { Log.d("GameViewModel", "Observed gameState: ${it?.javaClass?.simpleName}") }.collect { state ->
+                    // Optionally update a ViewModel state specific to the game phase
+                }
+            } catch (e: CancellationException) {
+                Log.d("GameViewModel", "GameState collection cancelled.")
+                throw e
+            } catch (e: Exception) {
+                Log.e("GameViewModel", "Error collecting gameState", e)
+            }
+        }
+        viewModelScope.launch {
+            try {
+                gameManager.activeEnemies.onEach { Log.d("GameViewModel", "Observed enemies: ${it.size}") }.collect { _enemies.value = it }
+            } catch (e: CancellationException) {
+                Log.d("GameViewModel", "Enemies collection cancelled.")
+                throw e
+            } catch (e: Exception) {
+                Log.e("GameViewModel", "Error collecting enemies state", e)
+            }
+        }
+        viewModelScope.launch {
+            try {
+                gameManager.placedTowers.onEach { Log.d("GameViewModel", "Observed towers: ${it.size}") }.collect { _towers.value = it }
+            } catch (e: CancellationException) {
+                Log.d("GameViewModel", "Towers collection cancelled.")
+                throw e
+            } catch (e: Exception) {
+                Log.e("GameViewModel", "Error collecting towers state", e)
+            }
+        }
+
+        // TODO: Add Map StateFlow collection if/when GameManager exposes it dynamically
+        // For now, map is assumed static after init
     }
 
     // --- Placement Actions ---
     fun enterPlacementMode(towerType: TowerType) {
-        // Check if affordable before entering placement mode?
-        // Or just disable button and rely on check during placement?
-        // Current approach: Check during placement tap.
-        _selectedTowerForPlacement.value = towerType
-        _placementMode.value = true
-        Log.d("GameViewModel", "Entered placement mode for $towerType")
+        // Check affordability before entering placement mode
+        val cost = getTowerCost(towerType) ?: Int.MAX_VALUE
+        if (gameManager.currency.value >= cost) { // Check against current currency StateFlow
+            _selectedTowerForPlacement.value = towerType
+            _placementMode.value = true
+            Log.d("GameViewModel", "Entered placement mode for $towerType")
+        } else {
+            Log.w("GameViewModel", "Cannot enter placement mode for $towerType: Insufficient funds (Need: $cost, Have: ${gameManager.currency.value})")
+            // Optionally show feedback to user (e.g., Toast)
+        }
     }
 
     fun exitPlacementMode() {
@@ -110,7 +171,7 @@ class GameViewModel : ViewModel() {
         if (_placementMode.value && _selectedTowerForPlacement.value == towerType) {
             exitPlacementMode()
         } else {
-            enterPlacementMode(towerType)
+            enterPlacementMode(towerType) // Will check affordability
         }
     }
 
@@ -130,35 +191,61 @@ class GameViewModel : ViewModel() {
 
         Log.d("GameViewModel", "Attempting to place $towerTypeToPlace at ($x, $y)")
 
-        // --- Check Placement Validity (via GameManager) ---
-        if (gameManager.canPlaceTowerAt(x, y)) { // Assuming GameManager has this method
-            Log.d("GameViewModel", "Placement is valid for $towerTypeToPlace at ($x, $y).")
+        // --- Use GameManager for placement logic ---
 
-            // --- Economy Check ---
-            val cost = towerCostsViewModel[towerTypeToPlace] ?: Int.MAX_VALUE // Use cost map
-            if (gameManager.canAfford(cost)) { // Assuming GameManager has this method
-                Log.d("GameViewModel", "Player can afford $towerTypeToPlace (Cost: $cost, Current: ${gameManager.currency}).")
+        // Get cost from the Tower's companion object
+        val cost = getTowerCost(towerTypeToPlace)
+        if (cost == null) {
+            Log.e("GameViewModel", "Could not determine cost for tower type $towerTypeToPlace")
+            exitPlacementMode()
+            return
+        }
 
-                // --- Place Tower (via GameManager) ---
-                val placed = gameManager.placeTower(towerTypeToPlace, x, y) // Assuming GameManager has this method
-                if (placed) {
+        // TODO: Update GameManager interface/methods if needed for canPlaceTowerAt
+        if (gameManager.canPlaceTowerAt(x, y)) { // Placeholder check
+            Log.d("GameViewModel", "Placement location seems valid for $towerTypeToPlace at ($x, $y).")
+
+            // Create the actual Tower instance
+            // TODO: Use a TowerFactory or more robust creation mechanism
+            val towerInstance: Tower? = createTowerInstance(towerTypeToPlace, x, y)
+
+            if (towerInstance != null) {
+                // Attempt placement via GameManager (handles cost check again internally + registration)
+                if (gameManager.placeTower(towerInstance, cost)) {
                     Log.i("GameViewModel", "Tower $towerTypeToPlace placed successfully at ($x, $y) by GameManager.")
-                    // Currency deduction should be handled within GameManager.placeTower or EconomíaManager
-                    // No need to manually update _currency here if GameManager handles it
                     exitPlacementMode() // Exit placement mode after successful placement
                 } else {
-                    Log.e("GameViewModel", "GameManager failed to place tower $towerTypeToPlace at ($x, $y)!")
-                     exitPlacementMode() // Exit if placement fails in game logic
+                    Log.w("GameViewModel", "GameManager failed to place tower $towerTypeToPlace at ($x, $y) (e.g., insufficient funds or other reason).")
+                    exitPlacementMode() // Exit if placement fails
                 }
-
             } else {
-                Log.w("GameViewModel", "Player cannot afford $towerTypeToPlace (Cost: $cost, Current: ${gameManager.currency}).")
-                exitPlacementMode() // Exit placement mode on failed attempt
+                Log.e("GameViewModel", "Could not create instance for tower type $towerTypeToPlace")
+                exitPlacementMode()
             }
         } else {
-            Log.w("GameViewModel", "Placement is invalid according to GameManager for $towerTypeToPlace at ($x, $y).")
-            exitPlacementMode() // Exit placement mode on failed attempt
+            Log.w("GameViewModel", "Placement location is invalid according to GameManager for $towerTypeToPlace at ($x, $y).")
+            exitPlacementMode() // Exit placement mode on invalid location
         }
+    }
+
+    // Helper function to get cost from Tower companion objects
+    private fun getTowerCost(towerType: TowerType): Int? {
+        return when (towerType) {
+            TowerType.MUCUS -> MucusTower.COST
+            TowerType.MACROPHAGE -> MacrophageTower.COST
+            TowerType.COUGH -> CoughTower.COST
+            // Add other tower types here
+        }
+    }
+
+    // Helper function to create tower instances
+    private fun createTowerInstance(towerType: TowerType, x: Int, y: Int): Tower? {
+         return when (towerType) {
+             TowerType.MUCUS -> MucusTower(Pair(x, y), gameManager)
+             TowerType.MACROPHAGE -> MacrophageTower(Pair(x, y), gameManager)
+             TowerType.COUGH -> CoughTower(Pair(x, y), gameManager)
+             // Add other tower types here
+         }
     }
 
     // TODO: Add functions to update currency from enemy defeats (called by GameManager)
@@ -166,4 +253,5 @@ class GameViewModel : ViewModel() {
 }
 
 // Dummy TowerType for compilation if not already defined elsewhere
+// enum class TowerType { MUCUS, MACROPHAGE, COUGH }
 // enum class TowerType { MUCUS, MACROPHAGE, COUGH }

@@ -9,7 +9,19 @@ import kotlin.math.sqrt
 import android.util.Log
 
 /**
- * Abstract base class for all defensive towers.
+ * **Inheritance:** Abstract base class for all defensive towers.
+ * Defines common properties (cost, range, attackRate, position, damage) and core logic
+ * (`update`, `tryAttack`, `findTarget`, `isInRange`).
+ *
+ * **Encapsulation:** Key properties like `currentTarget` have `protected set`.
+ *
+ * **Polymorphism:** Subclasses (`MucusTower`, etc.) inherit and can potentially override
+ * methods like `findTarget` or `attack` for specialized behavior, although the primary
+ * variation is intended via the Strategy pattern.
+ *
+ * **Composition & Strategy Pattern:** Holds a reference to an `AttackStrategy` object.
+ * Delegates the specific attack execution logic (`attackStrategy.execute()`) to this
+ * strategy object, allowing attack behavior to be changed independently.
  */
 abstract class Tower(
     val cost: Int,
@@ -62,15 +74,15 @@ abstract class Tower(
      * Attempts to find a target and attack if cooldown is ready.
      */
     protected open fun tryAttack() {
-        val currentEnemies = gameManager.getEnemies() // Get enemies from GameManager
+        // Access enemies via the StateFlow's current value
+        val currentEnemies = gameManager.activeEnemies.value
 
         val target = findTarget(currentEnemies)
         if (target != null) {
             attack(target)
             cooldownTimer = attackCooldown // Reset cooldown
         } else {
-             // No target in range, maybe reset cooldown partially or fully? 
-             // For simplicity, we let it stay <= 0, so it tries again next frame.
+             // No target in range
         }
     }
 

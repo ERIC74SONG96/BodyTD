@@ -15,42 +15,43 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-//import com.example.myapplicationbodytd.game.entities.TowerType // Assuming TowerType enum exists
+import com.example.myapplicationbodytd.ui.TowerType
 
-// Define costs here temporarily, ideally fetch from game data
+// Remove redundant cost map (should use centralized costs eventually)
+/*
 val towerCosts = mapOf(
     TowerType.MUCUS to 10,
     TowerType.MACROPHAGE to 20,
     TowerType.COUGH to 10
 )
+*/
 
 /**
  * Composable panel for selecting towers to place.
  *
- * @param currentCurrencyState The player's current currency.
- * @param selectedTowerTypeState The currently selected tower type for placement.
+ * @param currentCurrency The player's current currency (as Int).
+ * @param selectedTowerType The currently selected tower type for placement (as TowerType?).
  * @param onTowerSelected Callback function when a tower button is clicked.
  */
 @Composable
 fun TowerSelectionPanel(
     modifier: Modifier = Modifier,
-    currentCurrencyState: State<Int>,
-    selectedTowerTypeState: State<TowerType?>,
+    currentCurrency: Int,
+    selectedTowerType: TowerType?,
     onTowerSelected: (TowerType) -> Unit
 ) {
-    val currentCurrency = currentCurrencyState.value
-    val selectedTowerType = selectedTowerTypeState.value
-
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -71,10 +72,13 @@ fun TowerSelectionPanel(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TowerType.values().forEach { towerType ->
+                TowerType.entries.forEach { towerType ->
+                    // TODO: Get cost from centralized source (Task 5)
+                    val cost = getTowerCostStatically(towerType) // Use helper
+
                     TowerButton(
                         towerType = towerType,
-                        cost = towerCosts[towerType] ?: 0,
+                        cost = cost,
                         currentCurrency = currentCurrency,
                         isSelected = selectedTowerType == towerType,
                         onClick = { onTowerSelected(towerType) }
@@ -82,6 +86,16 @@ fun TowerSelectionPanel(
                 }
             }
         }
+    }
+}
+
+// Helper to get static costs (until Task 5 fully integrated)
+// This should ideally live in ViewModel or a shared utility
+private fun getTowerCostStatically(towerType: TowerType): Int {
+    return when (towerType) {
+        TowerType.MUCUS -> 10 // Hardcoded for now
+        TowerType.MACROPHAGE -> 20
+        TowerType.COUGH -> 10
     }
 }
 
@@ -112,20 +126,17 @@ private fun TowerButton(
     }
 }
 
-// Preview requires a dummy TowerType enum if it doesn't exist
-enum class TowerType { MUCUS, MACROPHAGE, COUGH }
-
 @Preview(showBackground = true)
 @Composable
 fun TowerSelectionPanelPreview() {
-    val currency = remember { mutableIntStateOf(15) }
-    val selectedTower = remember { mutableStateOf<TowerType?>(TowerType.MUCUS) }
+    // Use plain values for preview state
+    var selectedTowerPreview by remember { mutableStateOf<TowerType?>(TowerType.MUCUS) }
 
     MaterialTheme {
         TowerSelectionPanel(
-            currentCurrencyState = currency,
-            selectedTowerTypeState = selectedTower,
-            onTowerSelected = { selectedTower.value = if (selectedTower.value == it) null else it }
+            currentCurrency = 15,
+            selectedTowerType = selectedTowerPreview,
+            onTowerSelected = { selectedTowerPreview = if (selectedTowerPreview == it) null else it }
         )
     }
 } 
