@@ -41,8 +41,7 @@ alwaysApply: false
 
 ### 4. Evaluation & Presentation
 - Ensure code clarity and adherence to SOLID principles!!!
-- Always document the OOP concepts used/needed directly in code!
-- Deliver a playable demo.
+- Mention the main OOP concepts used/needed directly in code!
 
 ## Final Objective:
 A well-structured Tower Defense game demonstrating mastery of object-oriented programming and design patterns in Kotlin.

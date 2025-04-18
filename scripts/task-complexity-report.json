@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "generatedAt": "2025-04-18T15:07:52.979Z",
+    "tasksAnalyzed": 15,
+    "thresholdScore": 5,
+    "projectName": "Your Project Name",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Setup Project Structure",
+      "complexityScore": 4,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the Android Studio project setup with Kotlin and Jetpack Compose into specific subtasks including project initialization, Gradle configuration, package structure creation, and dependency management.",
+      "reasoning": "This is a foundational task with moderate complexity. It involves standard project setup procedures but requires careful configuration of multiple packages and dependencies. The structure will impact all subsequent development."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Implement Core Game Loop and State Pattern",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the implementation of the GameManager singleton with State pattern into subtasks covering the base singleton structure, abstract state class, concrete state implementations, fixed time step loop, and state transition logic.",
+      "reasoning": "This task has high complexity as it implements core architectural patterns (Singleton, State) and the central game loop. It requires careful design to ensure proper state transitions and timing, which will affect the entire game's behavior."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Create Map and Path System",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the map and path system implementation into subtasks covering TileInfo class creation, 2D grid structure, path definition logic, and validation methods for tower placement.",
+      "reasoning": "This task has moderate complexity involving data structure design and spatial relationships. The grid system and path definition are foundational for gameplay but follow relatively straightforward implementation patterns."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Implement Enemy Base Class and Movement Logic",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the enemy base class implementation into subtasks covering property definitions, path movement logic, status effect handling, damage calculation, and path completion detection.",
+      "reasoning": "This task involves complex movement calculations along a path with progress tracking and status effect modifications. The abstract base class design requires careful consideration as it will be extended by concrete enemy types."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Implement Enemy Factory and Concrete Enemy Types",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the enemy factory implementation into subtasks covering factory pattern structure, concrete enemy class implementations (Virus, Bacteria, Fine Particle), and factory methods for enemy creation at specified positions.",
+      "reasoning": "This task implements the Factory pattern with moderate complexity. While the concrete enemy types are relatively simple extensions of the base class, proper factory implementation requires careful design to ensure flexibility."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Implement Attack Strategy Pattern",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the attack strategy pattern implementation into subtasks covering interface definition, and each of the concrete strategies (SingleTargetAttack, SlowEffectAttack, HeavyDamageAttack, PushBackAttack) with their specific behaviors.",
+      "reasoning": "This task implements the Strategy pattern with multiple concrete implementations. Each strategy has unique effects on enemies, requiring careful design to ensure they interact properly with the enemy movement and state systems."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Implement Tower Base Class and Concrete Tower Types",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the tower implementation into subtasks covering abstract tower class design, targeting logic, cooldown mechanics, and each concrete tower type (MucusTower, MacrophageTower, CoughTower) with their specific properties and behaviors.",
+      "reasoning": "This task has high complexity as it combines the abstract tower design with concrete implementations that leverage the attack strategies. The targeting logic and cooldown mechanics add additional complexity to the implementation."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Implement Wave Manager and Wave Definitions",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the wave manager implementation into subtasks covering singleton structure, wave definition data structures, enemy spawning logic with timing, and wave completion detection.",
+      "reasoning": "This task involves managing complex wave definitions with varied enemy types and spawn timings. The singleton needs to coordinate with multiple other systems and maintain proper game state progression."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Implement Economy System",
+      "complexityScore": 4,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the economy system implementation into subtasks covering currency tracking, earning mechanics from defeated enemies, spending validation for tower purchases, and integration with the game manager.",
+      "reasoning": "This task has moderate complexity with straightforward currency management. The main challenges are proper integration with enemy defeat and tower placement systems rather than the economy logic itself."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement Combat System",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the combat system implementation into subtasks covering enemy detection in tower range, damage application, effect application, enemy defeat handling, and integration with game state management.",
+      "reasoning": "This task has high complexity as it coordinates interactions between multiple game systems (towers, enemies, economy, game state). It needs to handle various attack strategies and their effects while maintaining proper game state."
+    },
+    {
+      "taskId": 11,
+      "taskTitle": "Create Basic UI Canvas Rendering",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the canvas rendering implementation into subtasks covering Jetpack Compose Canvas setup, grid and path rendering, enemy rendering with health indicators, tower rendering, and attack effect visualization.",
+      "reasoning": "This task involves translating game state to visual elements using Jetpack Compose Canvas. While not algorithmically complex, it requires careful coordination between game state and visual representation across multiple entity types."
+    },
+    {
+      "taskId": 12,
+      "taskTitle": "Implement HUD and Tower Selection UI",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the HUD and tower selection UI implementation into subtasks covering currency/lives/wave display components, tower selection panel layout, reactive state observation, and Material Design styling.",
+      "reasoning": "This task involves creating UI components with Jetpack Compose that react to game state changes. The complexity is moderate, focusing on proper reactive design and clear information presentation."
+    },
+    {
+      "taskId": 13,
+      "taskTitle": "Implement Tower Placement Input Flow",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the tower placement input flow into subtasks covering placement mode activation, visual feedback for valid/invalid placement, placement validation logic, tower creation on valid placement, and integration with the economy system.",
+      "reasoning": "This task involves complex user interaction flows with multiple states and validation requirements. It needs to coordinate between UI input, game state, and multiple subsystems (map, economy, tower creation)."
+    },
+    {
+      "taskId": 14,
+      "taskTitle": "Integrate Game Components and Implement Main Game Screen",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the game integration task into subtasks covering main GameScreen composable structure, state observation from game systems, initialization flow implementation, component communication architecture, and lifecycle management.",
+      "reasoning": "This task has high complexity as it integrates all previously implemented components into a cohesive whole. It requires careful management of state flow between UI and game logic, and proper initialization sequencing."
+    },
+    {
+      "taskId": 15,
+      "taskTitle": "Implement Game Balance Testing and Refinement",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the game balance testing task into subtasks covering parameter adjustment system design, testing methodology development, balance parameter refinement process, and final documentation of balance values.",
+      "reasoning": "This task involves creating systems for adjusting and testing game parameters, which is moderately complex. The challenge lies in developing a systematic approach to balance testing rather than in technical implementation difficulty."
+    }
+  ]
+}

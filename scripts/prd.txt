@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: false
----
 # Product Requirements Document: BodyTD (v1.2)
 
 ## 1. Overview & Goal
@@ -103,7 +98,7 @@ BodyTD is a 2D tower defense game for Android (Kotlin/Android Studio). Goal: A w
 -   Target: Android API Level TBD (e.g., 26+)
 -   Language: Kotlin
 -   IDE: Android Studio
--   Build System: Gradle with Kotlin DSL (`.gradle.kts`) and Version following conventions in [gradle_dependency_management.mdc](mdc:.cursor/rules/gradle_dependency_management.mdc)
+-   Build System: Gradle with Kotlin DSL (`.gradle.kts`)
 
 ### 4.2 Architecture & Design Patterns
 -   **Core Principle:** Focus on Object-Oriented Programming (OOP) principles and SOLID design.
@@ -113,7 +108,6 @@ BodyTD is a 2D tower defense game for Android (Kotlin/Android Studio). Goal: A w
     -   Strategy: `AttackStrategy` for tower behaviors.
     -   State: `GameManager` game phase management.
 -   **Consider:** Observer pattern *only if* complex, non-UI event handling is needed beyond Compose's reactive state capabilities (e.g., analytics logging, intricate cross-manager communication not suited for direct calls).
--   **File Structure:** Adhere to the structure defined in [bodytd_file_structure.mdc](mdc:.cursor/rules/bodytd_file_structure.mdc)
 
 ### 4.3 Non-Functional Requirements
 -   **Performance:** Aim for smooth game updates and rendering (~60 FPS target on mid-range devices). Efficient object management (pooling if necessary, though likely overkill for MVP).
@@ -139,4 +133,4 @@ BodyTD is a 2D tower defense game for Android (Kotlin/Android Studio). Goal: A w
     -   Wave 1: 10 Virus, spawn interval 1.0s.
     -   Wave 2: 15 Virus (interval 0.8s), 5 Bacteria (interval 1.5s, starts after Viruses).
     -   Wave 3: 10 Bacteria (interval 1.0s), 20 Fine Particle (interval 0.5s, starts after Bacteria), 5 Virus (interval 0.5s, starts after Particles).
-    *(Note: All balancing values require playtesting and adjustment.)*
+    *(Note: All balancing values require playtesting and adjustment.)* 

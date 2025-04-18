@@ -13,69 +13,11 @@ alwaysApply: false
 
 ## 1. Development Philosophy
 
-### 1.1 Incremental Development
-- Build the game in small, testable increments
-- Each increment should be a working version of the game
-- Focus on one feature at a time
-- Complete each feature before moving to the next
-
 ### 1.2 Refactoring Guidelines
 - Refactor when:
   - Code duplication is detected
   - A class has too many responsibilities, or when an class feature could be modularized and expect further expansion
   - Code is hard to understand
-- Refactor in small, focused steps
-
-## 2. Implementation Order
-
-### 2.1 Phase 1: Core Game Engine
-1. **Basic Game Loop**
-   - Implement GameManager singleton
-   - Create basic game loop with fixed time step
-   - Add simple rendering system
-
-2. **Map and Path System**
-   - Implement basic map representation
-   - Create path system for enemies
-   - Add validation and placement logic for tower placement
-
-3. **Basic UI Framework**
-   - Set up Jetpack Compose structure
-   - Implement basic HUD
-   - Create placeholder for game view
-
-### 2.2 Phase 2: Game Entities
-1. **Enemy System**
-   - Implement base Enemy class
-   - Add basic enemy types (Virus, Bacteria, FineParticle)
-   - Implement enemy movement along path
-
-2. **Tower System**
-   - Implement base Turret class
-   - Create AttackStrategy interface
-   - Implement basic tower types
-   - Add tower targeting logic
-
-3. **Player System**
-   - Implement money management
-
-### 2.3 Phase 3: Game Mechanics
-1. **Wave System**
-   - Implement WaveManager
-   - Create enemy spawning logic (Through EnemyFactory)
-
-2. **Combat System**
-   - Implement damage calculation
-
-3. **Game State**
-   - Add win/lose conditions: Win after 3rd wave. Lose if more than 3 enemies reach the end.
-
-### 2.4 Phase 4: Polish and Optimization
-1. **Visual Improvements**
-   - Simple graphics, with static images
-
-2. **User Experience**
-   - Add sound effects
 
 ## 3. Code Organization
 
@@ -129,9 +71,6 @@ alwaysApply: false
 
     Favor pure functions for testable logic (especially in GameManager or Strategy classes).
 - Check on the internet for the most recent coding practices/technologies each time you encounter a main problem that needs to be solved.
-
-### 4.3 Documentation
-- Analyze, compare and document design decisions in the broader picture/view
 
 ## 5. Interactive Development Process
 

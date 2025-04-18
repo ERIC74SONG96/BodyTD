@@ -4,71 +4,15 @@ globs:
 alwaysApply: true
 ---
 ---
-description: 
-globs: 
-alwaysApply: true
----
- ---
 description: BodyTD - A Biological Tower Defense Game
 globs: ["**/*.kt"]
-alwaysApply: false
+alwaysApply: true
 ---
 
 # BodyTD Game Specifications
 
 ## 1. Game Overview
 BodyTD is a tower defense game with a biological theme where players defend against various pathogens using different types of defensive towers.
-
-## 2. Core Game Mechanics (example)
-
-### 2.1 Towers
-- **Base Tower Class**: Abstract `Turret` class with:
-  - Cost: Int
-  - Range: Int (default 3)
-  - Attack Strategy: AttackStrategy interface
-  - Abstract methods: attackEnemy()
-
-- **Tower Types**:
-  1. **Mucus Tower**
-     - Cost: 10
-     - Effect: Slows enemies and light damage
-     - Range: 3
-     - Strategy: SlowEffectAttack and SingleTargetAttack
-
-  2. **Macrophage Tower**
-     - Cost: 20
-     - Effect: Heavy damage
-     - Range: 3
-     - Strategy: SingleTargetAttack
-
-  3. **Cough Tower**
-     - Cost: 10
-     - Effect: Push back enemies
-     - Range: 3
-     - Strategy: PushBackAttack
-
-### 2.2 Enemies
-- **Base Enemy Class**: Abstract class with:
-  - Health: Int
-  - Speed: Float
-  - Reward: Int
-  - Position: Int
-
-- **Enemy Types**:
-  1. **Virus**
-     - Health: 50
-     - Speed: 3.0
-     - Reward: 10
-
-  2. **Bacteria**
-     - Health: 100
-     - Speed: 1.0
-     - Reward: 20
-
-  3. **Fine Particle**
-     - Health: 30
-     - Speed: 1.0
-     - Reward: 5
 
 ### 2.3 Game Flow
 - Waves of enemies spawn at regular intervals
