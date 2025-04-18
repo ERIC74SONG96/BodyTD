@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
- ---
+---
 description: BodyTD Implementation Rules and Development Process
 globs: ["**/*.kt"]
 alwaysApply: false
@@ -19,22 +19,12 @@ alwaysApply: false
 - Focus on one feature at a time
 - Complete each feature before moving to the next
 
-### 1.2 Test-Driven Development (TDD)
-- Write tests before implementing features
-- Follow the Red-Green-Refactor cycle:
-  1. Write a failing test (Red)
-  2. Implement the minimum code to pass the test (Green)
-  3. Refactor the code while keeping tests passing (Refactor)
-- Maintain test coverage above 80% for core game logic
-
-### 1.3 Refactoring Guidelines
+### 1.2 Refactoring Guidelines
 - Refactor when:
   - Code duplication is detected
-  - A class has too many responsibilities
-  - Tests are difficult to write
+  - A class has too many responsibilities, or when an class feature could be modularized and expect further expansion
   - Code is hard to understand
 - Refactor in small, focused steps
-- Ensure all tests pass after each refactoring
 
 ## 2. Implementation Order
 
@@ -57,7 +47,6 @@ alwaysApply: false
 ### 2.2 Phase 2: Game Entities
 1. **Enemy System**
    - Implement base Enemy class
-   - Create EnemyFactory
    - Add basic enemy types (Virus, Bacteria, FineParticle)
    - Implement enemy movement along path
 
@@ -70,67 +59,26 @@ alwaysApply: false
 3. **Player System**
    - Implement money management
    - Add tower placement logic
-   - Create upgrade system
 
 ### 2.3 Phase 3: Game Mechanics
 1. **Wave System**
    - Implement WaveManager
-   - Add wave progression
-   - Create enemy spawning logic
+   - Create enemy spawning logic (Through EnemyFactory)
 
 2. **Combat System**
    - Implement damage calculation
-   - Add tower attack animations
-   - Create enemy death effects
 
 3. **Game State**
-   - Add win/lose conditions
-   - Implement game over screen
-   - Create restart functionality
+   - Add win/lose conditions: Win after 3rd wave. Lose if more than 3 enemies reach the end.
 
 ### 2.4 Phase 4: Polish and Optimization
 1. **Visual Improvements**
-   - Add proper graphics
-   - Implement animations
-   - Create visual effects
+   - Simple graphics, with static images
 
-2. **Performance Optimization**
-   - Profile and optimize game loop
-   - Optimize tower targeting
-
-3. **User Experience**
+2. **User Experience**
    - Add sound effects
-   - Implement feedback mechanisms
-   - Create tutorial elements
 
-## 3. Testing Strategy
-
-### 3.1 Unit Testing
-- Test each class in isolation
-- Mock dependencies
-- Focus on:
-  - Enemy movement and behavior
-  - Tower targeting and attacks
-  - Money and resource management
-  - Wave progression
-
-### 3.2 Integration Testing
-- Test interactions between components
-- Verify:
-  - Enemy-tower interactions
-  - Wave-enemy spawning
-  - Player-tower placement
-  - Game state transitions
-
-### 3.3 UI Testing
-- Test user interactions
-- Verify:
-  - Tower placement
-  - Upgrade functionality
-  - HUD updates
-  - Game over conditions
-
-## 4. Code Organization
+## 3. Code Organization
 
 ### 4.1 File Structure
 - Keep related files together
@@ -139,67 +87,56 @@ alwaysApply: false
 
 ### 4.2 Code Style
 - Use consistent formatting
-- Follow Kotlin idioms
-- Write self-documenting code
-- Add comments for complex logic
+- Follow Kotlin idioms:
+ 1. Idiomatic Object-Oriented Design
+
+    data class → Auto-generates boilerplate for value-based objects.
+
+    object → Use for singletons, shared managers, or factories.
+
+    interface + sealed class → Enforce controlled polymorphism and hierarchies.
+
+ 2. Idiomatic Architecture & Utility
+
+    by lazy → Deferred and thread-safe initialization (for managers or configs).
+
+    lateinit var → For mutable properties injected later (e.g., context-dependent instances).
+
+    Extension Functions → Add utility to existing types (e.g., .dpToPx() on Int, or .isDead() on Enemy).
+
+ 3. Idiomatic Collections and Flow
+
+    .filter, .map, .forEach, .associateBy, etc. → Write expressive and readable data logic.
+
+    Destructuring (val (x, y) = position) → Simplify handling of compound objects like coordinates.
+
+ 4. Idiomatic State Management
+
+    val uiState = remember { mutableStateOf(...) } → Compose-specific, for reactive UIs.
+
+    sealed class + when → Elegant and exhaustive event or state handling.
+
+ 5. Idiomatic Communication & Events
+
+    Use State, MutableStateFlow, or LiveData depending on architecture (Compose, MVVM, etc.).
+
+    Implement Observer pattern using MutableState or Flow idiomatically.
+
+    Use callbacks as lambdas for minimal coupling (onTowerPlaced: (Tower) -> Unit).
+
+ 6. Idiomatic Testing & Debugging
+
+    Use when, require(), check() and error() to enforce assumptions early and catch issues faster.
+
+    Favor pure functions for testable logic (especially in GameManager or Strategy classes).
+- Check on the internet for the most recent coding practices/technologies each time you encounter a main problem that needs to be solved.
 
 ### 4.3 Documentation
-- Document public APIs
-- Add class-level documentation
-- Include usage examples
-- Document design decisions, especially the relevant/interesting considerations, possible solutions, and final decision. 
+- Analyze, compare and document design decisions in the broader picture/view
 
-## 5. Development Workflow
+## 5. Interactive Development Process
 
-### 5.1 Daily Development Cycle
-1. Review current state
-2. Write tests for next feature
-3. Implement feature
-4. Run all tests
-5. Refactor if needed
-6. Commit changes with clear messages
-
-### 5.2 Feature Completion Checklist
-- [ ] Tests written and passing
-- [ ] Code reviewed and refactored
-- [ ] Documentation updated
-- [ ] Performance acceptable
-- [ ] No regressions in existing features
-
-### 5.3 Architecture Review Points
-- After completing each phase
-- When adding new tower types
-- When adding new enemy types
-- When performance issues arise
-- When code complexity increases
-
-## 6. Troubleshooting Guide
-
-### 6.1 Common Issues
-- Performance problems: Profile and optimize
-- Memory leaks: Check object lifecycle
-- UI glitches: Review rendering code
-- Game balance: Adjust parameters
-
-### 6.2 Debugging Process
-1. Reproduce the issue
-2. Isolate the problem
-3. Fix the root cause
-4. Add tests to prevent recurrence
-5. Document the solution
-
-### 6.3 Optimization Process
-1. Identify bottleneck
-2. Measure current performance
-3. Implement optimization
-4. Measure improvement
-5. Document changes
-
-You can document all the relevant new features/changes in the docs folder. Iteration by iteration.
-
-## 7. Interactive Development Process
-
-### 7.1 Decision-Making Framework
+### 5.1 Decision-Making Framework
 1. **Problem Exploration**
    - AI identifies potential challenges and trade-offs
    - Presents multiple viable solutions
@@ -212,9 +149,8 @@ You can document all the relevant new features/changes in the docs folder. Itera
    - Design pattern selection
    - UI/UX approaches
    - Performance optimization strategies
-   - Testing methodologies
 
-### 7.2 Solution Discussion Format
+### 5.2 Solution Discussion Format
 1. **Problem Statement**
    - Clear description of the challenge
    - Impact on current codebase
@@ -243,50 +179,17 @@ You can document all the relevant new features/changes in the docs folder. Itera
    - AI adapts and proceeds based on your decision
    - Documents decision rationale for future reference
 
-### 7.3 Example Discussion Topics
-
-1. **Architecture Decisions**
-   - Game state management approaches
-     - Pure Kotlin state management
-     - Android ViewModel architecture
-     - Custom reactive system
-   - UI architecture patterns
-     - Pure Compose
-     - Hybrid Canvas/Compose
-     - Custom rendering engine
-
-2. **Implementation Strategies**
-   - Enemy pathfinding algorithms
-     - A* pathfinding
-     - Waypoint system
-     - Grid-based movement
-   - Tower targeting mechanisms
-     - Priority-based targeting
-     - Distance-based targeting
-     - Custom targeting strategies
-
-3. **Performance Optimizations**
-   - Rendering approaches
-     - Bitmap caching
-     - Sprite batching
-     - Custom drawing optimizations
-   - Game loop implementations
-     - Fixed time step
-     - Variable time step
-     - Hybrid approaches
-
-### 7.4 Collaboration Guidelines
+### 5.3 Collaboration Guidelines
 
 1. **Communication Style**
    - Clear and concise explanations
    - Technical depth when needed
    - Visual diagrams for complex concepts
-   - Code examples for clarity
+   - Logging for clarity
 
 2. **Iteration Process**
    - Quick prototypes for validation
    - Regular feedback cycles
-   - Adjustments based on testing
    - Documentation of decisions
 
 3. **Knowledge Transfer**
@@ -295,10 +198,10 @@ You can document all the relevant new features/changes in the docs folder. Itera
    - Pattern recognition
    - Learning opportunities
 
-### 7.5 Decision Documentation
+### 5.4 Decision Documentation
 
 1. **Decision Record Format**
-   - Date and context
+   - Context
    - Problem statement
    - Considered alternatives
    - Chosen solution
@@ -310,10 +213,7 @@ You can document all the relevant new features/changes in the docs folder. Itera
    - Lessons learned
    - Potential revisit points
 
-### 7.6 Flexibility Points
+### 5.5 Flexibility Points
 - Architecture can evolve based on needs
 - Implementation details can be adjusted
-- Testing strategies can be modified
-- Performance targets can be revised
-- Feature priorities can be reordered 
-
+- Feature priorities can be reordered
