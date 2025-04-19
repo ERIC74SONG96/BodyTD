@@ -52,30 +52,6 @@ class Map(
     }
 
     /**
-     * Sets the properties of a tile at the specified coordinates.
-     * Ensures mutual exclusivity between isPath and isPlaceable.
-     *
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @param isPath Whether the tile should be part of the path.
-     * @param isPlaceable Whether the tile should be placeable for towers.
-     * @return True if the tile was set successfully, false if coordinates are invalid.
-     */
-    fun setTileType(x: Int, y: Int, isPath: Boolean, isPlaceable: Boolean): Boolean {
-        if (isPath && isPlaceable) {
-            throw IllegalArgumentException("Tile cannot be both path and placeable.")
-        }
-        val tile = getTileAt(x, y)
-        return if (tile != null) {
-            tile.isPath = isPath
-            tile.isPlaceable = isPlaceable
-            true
-        } else {
-            false
-        }
-    }
-
-    /**
      * Validates and sets the enemy path on the map.
      * Updates the isPath property of the corresponding tiles.
      *
@@ -159,41 +135,6 @@ class Map(
     fun canPlaceTowerAt(x: Int, y: Int): Boolean {
         val tile = getTileAt(x, y)
         return tile?.canPlaceTower() ?: false
-    }
-
-    /**
-     * Marks a specific tile as placeable for towers.
-     * Ensures it's not part of the path.
-     *
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return True if the tile was successfully marked, false if coordinates are invalid.
-     */
-    fun setTileAsPlaceable(x: Int, y: Int): Boolean {
-        val tile = getTileAt(x, y)
-        return if (tile != null) {
-            tile.setAsPlaceable() // This handles mutual exclusivity
-            true
-        } else {
-            false
-        }
-    }
-
-    /**
-     * Gets a list of all coordinates where towers can currently be placed.
-     *
-     * @return A list of Pair<Int, Int> representing placeable tile coordinates.
-     */
-    fun getPlaceableTiles(): List<Pair<Int, Int>> {
-        val placeable = mutableListOf<Pair<Int, Int>>()
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                if (grid[y][x].canPlaceTower()) {
-                    placeable.add(Pair(x, y))
-                }
-            }
-        }
-        return placeable
     }
 
     /**

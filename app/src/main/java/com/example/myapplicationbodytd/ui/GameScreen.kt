@@ -33,7 +33,6 @@ import com.example.myapplicationbodytd.R
 
 // TODO: Define these properly, maybe in a constants file
 const val GRID_SIZE = 15 // Example: 10x10 grid
-const val MAX_CANVAS_SIZE_DP = 600 // Maximum size for the canvas area in DP
 
 //enum class TowerType { MUCUS, MACROPHAGE, COUGH } // Define if not already elsewhere
 
@@ -309,7 +308,7 @@ fun TowerSelectionPanel(
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        TowerType.values().forEach { towerType ->
+        TowerType.entries.forEach { towerType ->
             TowerButton(
                 towerType = towerType,
                 isSelected = selectedTower == towerType,

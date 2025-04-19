@@ -11,7 +11,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.tooling.preview.Preview
-//import com.example.myapplicationbodytd.ui.theme.MyApplicationBodyTDTheme
 import androidx.compose.ui.graphics.StrokeCap
 import com.example.myapplicationbodytd.game.entities.Bacteria
 import com.example.myapplicationbodytd.game.entities.Enemy
@@ -21,7 +20,6 @@ import com.example.myapplicationbodytd.game.map.Map // Assuming Map provides gri
 import com.example.myapplicationbodytd.game.entities.* // Import all entities
 import androidx.compose.ui.graphics.drawscope.Stroke
 import android.util.Log // Import Log
-//import com.example.myapplicationbodytd.game.entities.TowerType // Assuming TowerType enum exists
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.myapplicationbodytd.game.map.TileInfo // Import TileInfo
 import com.example.myapplicationbodytd.ui.TowerType // Import the correct UI TowerType
@@ -107,7 +105,7 @@ fun GameCanvas(
 
         drawTowers(towers, tileSize, offsetX, offsetY)
         drawEnemies(enemies, tileSize, offsetX, offsetY)
-        drawAttackEffects(towers, tileSize, offsetX, offsetY)
+        drawAttackEffects(towers, offsetX, offsetY)
     }
 }
 
@@ -268,7 +266,7 @@ private fun DrawScope.drawPlacementHighlights(
 /**
  * Draws visual effects for tower attacks (e.g., lines to targets).
  */
-private fun DrawScope.drawAttackEffects(towers: List<Tower>, tileSize: Float, offsetX: Float, offsetY: Float) {
+private fun DrawScope.drawAttackEffects(towers: List<Tower>, offsetX: Float, offsetY: Float) {
     towers.forEach { tower ->
         tower.currentTarget?.let { target ->
             // Draw only if the attack effect timer is active and target is still valid

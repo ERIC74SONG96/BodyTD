@@ -1,6 +1,5 @@
 package com.example.myapplicationbodytd.game.entities
 
-import com.example.myapplicationbodytd.game.mechanics.strategies.AttackStrategy
 import com.example.myapplicationbodytd.game.mechanics.strategies.CompositeAttackStrategy
 import com.example.myapplicationbodytd.game.mechanics.strategies.SingleTargetAttack
 import com.example.myapplicationbodytd.game.mechanics.strategies.SlowEffectAttack

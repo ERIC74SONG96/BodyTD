@@ -81,7 +81,7 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
 
         viewModelScope.launch {
             try {
-                gameManager.lives.onEach { Log.d("GameViewModel", "Observed lives: $it") }.collect { _lives.value = it }
+                gameManager.lives.onEach { Log.d("GameViewModel", "Observed lives: $it") }.collect { _lives.intValue = it }
             } catch (e: CancellationException) {
                 Log.d("GameViewModel", "Lives collection cancelled.")
                 throw e // Re-throw cancellation exceptions
@@ -92,7 +92,7 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
         }
         viewModelScope.launch {
              try {
-                 gameManager.currency.onEach { Log.d("GameViewModel", "Observed currency: $it") }.collect { _currency.value = it }
+                 gameManager.currency.onEach { Log.d("GameViewModel", "Observed currency: $it") }.collect { _currency.intValue = it }
             } catch (e: CancellationException) {
                 Log.d("GameViewModel", "Currency collection cancelled.")
                 throw e
@@ -102,7 +102,7 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
         }
         viewModelScope.launch {
             try {
-                gameManager.currentWave.onEach { Log.d("GameViewModel", "Observed wave: $it") }.collect { _wave.value = it }
+                gameManager.currentWave.onEach { Log.d("GameViewModel", "Observed wave: $it") }.collect { _wave.intValue = it }
             } catch (e: CancellationException) {
                 Log.d("GameViewModel", "Wave collection cancelled.")
                 throw e

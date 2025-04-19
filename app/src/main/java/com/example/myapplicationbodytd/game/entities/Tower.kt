@@ -117,6 +117,7 @@ abstract class Tower(
      * @return True if the enemy is in range, false otherwise.
      */
     protected open fun isInRange(enemy: Enemy): Boolean {
+        // we could also have used bitmap collision for faster (although static) in-range detection
         return calculateDistanceSquared(enemy) <= range.pow(2)
     }
 
@@ -130,15 +131,6 @@ abstract class Tower(
         val dx = enemy.position.x - worldPosition.x
         val dy = enemy.position.y - worldPosition.y
         return dx * dx + dy * dy
-    }
-
-    /**
-     * Calculates the actual distance between the tower and an enemy.
-     * @param enemy The enemy to measure distance to.
-     * @return The distance.
-     */
-    protected fun calculateDistance(enemy: Enemy): Float {
-        return sqrt(calculateDistanceSquared(enemy))
     }
 
 } 

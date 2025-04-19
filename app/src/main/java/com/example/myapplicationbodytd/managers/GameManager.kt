@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.TimeSource
 import android.util.Log
 import com.example.myapplicationbodytd.game.entities.Enemy

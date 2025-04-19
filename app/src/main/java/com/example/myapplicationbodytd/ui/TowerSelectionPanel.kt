@@ -29,15 +29,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myapplicationbodytd.ui.TowerType
 
-// Remove redundant cost map (should use centralized costs eventually)
-/*
-val towerCosts = mapOf(
-    TowerType.MUCUS to 10,
-    TowerType.MACROPHAGE to 20,
-    TowerType.COUGH to 10
-)
-*/
-
 /**
  * Composable panel for selecting towers to place.
  *
