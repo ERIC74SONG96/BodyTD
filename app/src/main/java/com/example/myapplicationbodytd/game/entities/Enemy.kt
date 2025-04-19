@@ -7,6 +7,7 @@ import com.example.myapplicationbodytd.managers.Updatable
 import com.example.myapplicationbodytd.util.CoordinateConverter
 import kotlin.math.max
 import android.util.Log
+import androidx.compose.runtime.Stable
 
 /**
  * **Inheritance:** Base class for all enemy types.
@@ -20,35 +21,38 @@ import android.util.Log
  * override methods like `updateStatusEffects`, `onDeath` to provide specialized behavior.
  * The abstract `getType()` method forces subclasses to provide their specific type identifier.
  */
+@Stable
 abstract class Enemy(
     // Core stats
     initialHealth: Float,
-    val speed: Float, // Tiles per second
-    val reward: Int,
-    protected val path: List<Pair<Int, Int>>, // The path coordinates the enemy follows
+    val speed: Float, // Tiles per second - Immutable, good for stability
+    val reward: Int, // Immutable, good for stability
+    protected val path: List<Pair<Int, Int>>, // Immutable list, good for stability
+    // Note: GameManager reference might affect stability if GameManager itself isn't stable,
+    // but since it's a singleton object, Compose likely treats it as stable.
     protected val gameManager: GameManager // Reference to GameManager for event reporting
 
 ) : Updatable { // Implement Updatable for the game loop
 
     // Path traversal state
-    var currentPathIndex: Int = 0
+    var currentPathIndex: Int = 0 // Mutable var
         protected set
-    var progressAlongSegment: Float = 0f // 0.0 to 1.0 progress to the next point
+    var progressAlongSegment: Float = 0f // Mutable var
         protected set
 
     // Derived position based on path and progress
-    var position: Offset = Offset.Zero
+    var position: Offset = Offset.Zero // Mutable var - Offset itself is Immutable
         protected set // Internal calculation updates this
 
     // Status Effects
-    var isSlowed: Boolean = false
+    var isSlowed: Boolean = false // Mutable var
         private set
     private var slowTimer: Float = 0f
     private var slowFactor: Float = 1.0f // 1.0 means normal speed
 
     // Health and Status
-    var health: Float = initialHealth
-    val maxHealth: Float = initialHealth // Store initial health as max health
+    var health: Float = initialHealth // Mutable var
+    val maxHealth: Float = initialHealth // Immutable val, good
     val isDead: Boolean
         get() = health <= 0f
 

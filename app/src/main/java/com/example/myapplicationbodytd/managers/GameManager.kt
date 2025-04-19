@@ -16,9 +16,12 @@ import com.example.myapplicationbodytd.game.states.LostState
 import com.example.myapplicationbodytd.game.states.PlayingState
 import com.example.myapplicationbodytd.game.states.WonState
 import com.example.myapplicationbodytd.managers.EconomyManager
+import com.example.myapplicationbodytd.util.Constants
 import com.example.myapplicationbodytd.util.CoordinateConverter
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 
 /**
  * Interface for game objects that need periodic updates.
@@ -56,7 +59,7 @@ object GameManager {
     private var gameLoopJob: Job? = null
 
     // Cell size for coordinate conversions (updated by UI)
-    var currentCellSize: Float = CoordinateConverter.DEFAULT_TILE_SIZE // Initialize with default
+    var currentCellSize: Float = Constants.DEFAULT_TILE_SIZE // Use Constant directly
         private set
 
     // Target update rate (e.g., 60 updates per second)
@@ -64,9 +67,9 @@ object GameManager {
     private const val TIME_STEP_NANOS = 1_000_000_000L / TARGET_UPDATES_PER_SECOND
 
     // Game Progress Tracking
-    const val MAX_WAVES = 3
-    const val MAX_LIVES_LOST = 3
-    private const val STARTING_LIVES = 3
+    const val MAX_WAVES = Constants.WAVES_TO_WIN // Use Constant
+    const val MAX_LIVES_LOST = Constants.MAX_LIVES // Use Constant
+    private const val STARTING_LIVES = Constants.MAX_LIVES // Use Constant
 
     // --- Reactive Game State using StateFlow ---
     private val _gameState = MutableStateFlow<GameState?>(null)
@@ -81,11 +84,15 @@ object GameManager {
     private val _currentWave = MutableStateFlow(0)
     val currentWave: StateFlow<Int> = _currentWave.asStateFlow()
 
-    private val _activeEnemies = MutableStateFlow<List<Enemy>>(emptyList())
-    val activeEnemies: StateFlow<List<Enemy>> = _activeEnemies.asStateFlow()
+    private val _activeEnemies = mutableStateListOf<Enemy>()
+    val activeEnemies: SnapshotStateList<Enemy> = _activeEnemies
 
-    private val _placedTowers = MutableStateFlow<List<Tower>>(emptyList())
-    val placedTowers: StateFlow<List<Tower>> = _placedTowers.asStateFlow()
+    private val _placedTowers = mutableStateListOf<Tower>()
+    val placedTowers: SnapshotStateList<Tower> = _placedTowers
+
+    // StateFlow to explicitly trigger recomposition in the UI
+    private val _drawTick = MutableStateFlow(0L)
+    val drawTick: StateFlow<Long> = _drawTick.asStateFlow()
 
     // Initialize and start the game loop
     init {
@@ -96,15 +103,15 @@ object GameManager {
 
     /**
      * Thread-safe registration of game objects.
-     * Uses ReentrantLock to synchronize access to shared collections and state flows.
+     * Modifies SnapshotStateLists directly.
      */
     fun registerGameObject(obj: Updatable) {
         gameObjectsLock.withLock {
             if (!gameObjects.contains(obj)) {
                 gameObjects.add(obj)
                 when (obj) {
-                    is Enemy -> _activeEnemies.update { list -> list + obj }
-                    is Tower -> _placedTowers.update { list -> list + obj }
+                    is Enemy -> _activeEnemies.add(obj)
+                    is Tower -> _placedTowers.add(obj)
                 }
             }
         }
@@ -112,14 +119,14 @@ object GameManager {
 
     /**
      * Thread-safe unregistration of game objects.
-     * Uses ReentrantLock to synchronize access to shared collections and state flows.
+     * Modifies SnapshotStateLists directly.
      */
     fun unregisterGameObject(obj: Updatable) {
         gameObjectsLock.withLock {
             if (gameObjects.remove(obj)) {
                 when (obj) {
-                    is Enemy -> _activeEnemies.update { list -> list - obj }
-                    is Tower -> _placedTowers.update { list -> list - obj }
+                    is Enemy -> _activeEnemies.remove(obj)
+                    is Tower -> _placedTowers.remove(obj)
                 }
             }
         }
@@ -140,26 +147,43 @@ object GameManager {
         gameLoopJob = scope.launch {
             val timeSource = TimeSource.Monotonic
             var lastTimeMark = timeSource.markNow()
-            var lagNanos = 0L
+            // Remove lagNanos and frameCounter for simplicity during test
+            // var lagNanos = 0L 
+            // var frameCounter = 0L
+
+            Log.i("GameLoop", "Starting game loop (Variable Timestep Test)...")
 
             while (isActive) {
-                val now = timeSource.markNow()
-                val elapsedNanos = (now - lastTimeMark).inWholeNanoseconds
-                lastTimeMark = now
-                lagNanos += elapsedNanos
+                val loopStartTime = timeSource.markNow()
+                val elapsedNanos = (loopStartTime - lastTimeMark).inWholeNanoseconds
+                lastTimeMark = loopStartTime
 
-                // Update game logic based on fixed time step
-                while (lagNanos >= TIME_STEP_NANOS) {
-                    val deltaTimeSeconds = TIME_STEP_NANOS / 1_000_000_000f
-                    updateGame(deltaTimeSeconds)
-                    lagNanos -= TIME_STEP_NANOS
+                // Prevent division by zero or excessively large delta if loop stalls
+                if (elapsedNanos <= 0) {
+                    yield() // Skip update if no time elapsed
+                    continue
                 }
+                // Cap delta time to avoid huge jumps after stalls (e.g., 100ms max step)
+                val clampedNanos = minOf(elapsedNanos, 100_000_000L)
+                val deltaTimeSeconds = clampedNanos / 1_000_000_000f 
 
-                // Yield or delay to avoid busy-waiting and control frame rate
-                // Calculate delay needed to approximate target frame time if necessary
-                // For simplicity, a small fixed delay can be used, or rely on UI loop
-                delay(1) // Minimal delay to yield the coroutine
+                // === Call updateGame directly ===
+                val updateStartTime = timeSource.markNow()
+                updateGame(deltaTimeSeconds)
+                val updateDurationMs = (timeSource.markNow() - updateStartTime).inWholeMilliseconds
+                // ================================
+
+                if (updateDurationMs > 10) { // Log if update takes longer than 10ms
+                    Log.w("GameLoop", "updateGame took ${updateDurationMs}ms (variable dt: ${deltaTimeSeconds})")
+                }
+                
+                // Yield control 
+                yield() 
+
+                // Increment the draw tick at the end of each loop iteration to trigger UI recomposition
+                _drawTick.value += 1L
             }
+            Log.i("GameLoop", "Game loop stopped.")
         }
     }
 
@@ -259,7 +283,7 @@ object GameManager {
 
         // Then check if there's already a tower at this location
         // Use the synchronized list of placed towers from the StateFlow
-        val existingTowers = _placedTowers.value
+        val existingTowers = _placedTowers
         return !existingTowers.any { it.position == Pair(x, y) }
     }
     // ---------------------

@@ -15,7 +15,6 @@ import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
 import com.example.myapplicationbodytd.ui.TowerType
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.CancellationException
@@ -23,6 +22,9 @@ import com.example.myapplicationbodytd.managers.WaveManager
 import com.example.myapplicationbodytd.game.states.GameState // Import GameState
 import kotlinx.coroutines.flow.StateFlow // Import StateFlow
 import com.example.myapplicationbodytd.game.states.WaveClearedState // Import specific state
+import androidx.compose.runtime.snapshots.SnapshotStateList // Import SnapshotStateList
+import com.example.myapplicationbodytd.util.CoordinateConverter
+import kotlinx.coroutines.flow.SharingStarted
 
 /**
  * ViewModel for the main Game Screen.
@@ -32,137 +34,45 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
 
     // --- Game Logic Integration ---
 
-    // --- Game State (exposed to UI via Compose State) ---
-    // These are updated by collectors observing GameManager's StateFlows
+    // Expose Map directly (assuming it's relatively static after init)
+    val gameMap: Map = gameManager.gameMap
 
-    // TODO: Map state - Assuming GameManager provides a static map or a Flow for it.
-    // For now, let's assume map doesn't change frequently after init.
-    private val _map = mutableStateOf<Map>(gameManager.gameMap) // Corrected reference
-    val map: State<Map> = _map
+    // --- Game State Flows (Observed from GameManager) ---
+    val lives: StateFlow<Int> = gameManager.lives
+    val currency: StateFlow<Int> = gameManager.currency
+    val gameState: StateFlow<GameState?> = gameManager.gameState
+    val currentWave: StateFlow<Int> = gameManager.currentWave
+    val maxWaves: Int = GameManager.MAX_WAVES
+    val drawTick: StateFlow<Long> = gameManager.drawTick
 
-    private val _enemies = mutableStateOf<List<Enemy>>(emptyList())
-    val enemies: State<List<Enemy>> = _enemies
+    // Expose SnapshotStateLists directly - Compose observes these
+    val enemies: SnapshotStateList<Enemy> = gameManager.activeEnemies
+    val towers: SnapshotStateList<Tower> = gameManager.placedTowers
 
-    private val _towers = mutableStateOf<List<Tower>>(emptyList())
-    val towers: State<List<Tower>> = _towers
-
-    private val _currency = mutableIntStateOf(0)
-    val currency: State<Int> = _currency
-
-    private val _lives = mutableIntStateOf(0)
-    val lives: State<Int> = _lives
-
-    private val _wave = mutableIntStateOf(0)
-    val wave: State<Int> = _wave
-
-    private val _currentGameState = mutableStateOf<GameState?>(null)
-    val currentGameState: State<GameState?> = _currentGameState
-
-    // --- Placement State ---
+    // --- UI-Specific State --- 
     private val _placementMode = mutableStateOf(false)
     val placementMode: State<Boolean> = _placementMode
 
-    private val _selectedTowerForPlacement = mutableStateOf<TowerType?>(null)
-    val selectedTowerForPlacement: State<TowerType?> = _selectedTowerForPlacement
-
-    // --- Game State Flows (Observed by UI) ---
-    // These are managed internally by observing GameManager
-    // Remove the conflicting direct exposures:
-    // val gameState: StateFlow<GameState?> = gameManager.gameState
-    // val lives: StateFlow<Int> = gameManager.lives
-    // val currency: StateFlow<Int> = gameManager.currency
-    // val currentWave: StateFlow<Int> = gameManager.currentWave
-    // val activeEnemies: StateFlow<List<Enemy>> = gameManager.activeEnemies
-    // val placedTowers: StateFlow<List<Tower>> = gameManager.placedTowers
+    private val _selectedTowerType = mutableStateOf<TowerType?>(null) // Renamed
+    val selectedTowerType: State<TowerType?> = _selectedTowerType // Renamed
 
     init {
-        Log.d("GameViewModel", "Initializing GameViewModel and starting observers...")
-        observeGameManagerStates()
+        Log.d("GameViewModel", "Initializing GameViewModel.")
+        // No need for collectors here anymore, we expose GameManager flows directly
     }
 
-    private fun observeGameManagerStates() {
-        Log.d("GameViewModel", "Setting up collectors for GameManager StateFlows...")
-
-        viewModelScope.launch {
-            try {
-                gameManager.lives.onEach { Log.d("GameViewModel", "Observed lives: $it") }.collect { _lives.intValue = it }
-            } catch (e: CancellationException) {
-                Log.d("GameViewModel", "Lives collection cancelled.")
-                throw e // Re-throw cancellation exceptions
-            } catch (e: Exception) {
-                Log.e("GameViewModel", "Error collecting lives state", e)
-                // Handle error appropriately, e.g., show error message
-            }
-        }
-        viewModelScope.launch {
-             try {
-                 gameManager.currency.onEach { Log.d("GameViewModel", "Observed currency: $it") }.collect { _currency.intValue = it }
-            } catch (e: CancellationException) {
-                Log.d("GameViewModel", "Currency collection cancelled.")
-                throw e
-            } catch (e: Exception) {
-                Log.e("GameViewModel", "Error collecting currency state", e)
-            }
-        }
-        viewModelScope.launch {
-            try {
-                gameManager.currentWave.onEach { Log.d("GameViewModel", "Observed wave: $it") }.collect { _wave.intValue = it }
-            } catch (e: CancellationException) {
-                Log.d("GameViewModel", "Wave collection cancelled.")
-                throw e
-            } catch (e: Exception) {
-                Log.e("GameViewModel", "Error collecting wave state", e)
-            }
-        }
-        viewModelScope.launch {
-            try {
-                gameManager.gameState.onEach { 
-                    Log.d("GameViewModel", "Observed gameState: ${it?.javaClass?.simpleName}") 
-                }.collect { state ->
-                    _currentGameState.value = state // Update the exposed state
-                }
-            } catch (e: CancellationException) {
-                Log.d("GameViewModel", "GameState collection cancelled.")
-                throw e
-            } catch (e: Exception) {
-                Log.e("GameViewModel", "Error collecting gameState", e)
-            }
-        }
-        viewModelScope.launch {
-            try {
-                gameManager.activeEnemies.onEach { Log.d("GameViewModel", "Observed enemies: ${it.size}") }.collect { _enemies.value = it }
-            } catch (e: CancellationException) {
-                Log.d("GameViewModel", "Enemies collection cancelled.")
-                throw e
-            } catch (e: Exception) {
-                Log.e("GameViewModel", "Error collecting enemies state", e)
-            }
-        }
-        viewModelScope.launch {
-            try {
-                gameManager.placedTowers.onEach { Log.d("GameViewModel", "Observed towers: ${it.size}") }.collect { _towers.value = it }
-            } catch (e: CancellationException) {
-                Log.d("GameViewModel", "Towers collection cancelled.")
-                throw e
-            } catch (e: Exception) {
-                Log.e("GameViewModel", "Error collecting towers state", e)
-            }
-        }
-
-        // TODO: Add Map StateFlow collection if/when GameManager exposes it dynamically
-        // For now, map is assumed static after init
-    }
-
-    // --- Helper to check if Start Wave button should be enabled ---
-    val canStartNextWave: Boolean
-        get() = _currentGameState.value is WaveClearedState
+    // --- Helper to check if Start Wave button should be enabled --- 
+    // This logic likely needs to be moved to where the button is defined (e.g., GameScreen) 
+    // and observe the gameState flow directly.
+    // val canStartNextWave: Boolean 
+    //     get() = gameState.value is WaveClearedState // Observe gameState flow instead
 
     // --- Placement Actions ---
     fun enterPlacementMode(towerType: TowerType) {
         // Check affordability before entering placement mode
         val cost = getTowerCost(towerType) ?: Int.MAX_VALUE
         if (gameManager.currency.value >= cost) { // Check against current currency StateFlow
-            _selectedTowerForPlacement.value = towerType
+            _selectedTowerType.value = towerType // Use renamed state
             _placementMode.value = true
             Log.d("GameViewModel", "Entered placement mode for $towerType")
         } else {
@@ -172,13 +82,13 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
     }
 
     fun exitPlacementMode() {
-        _selectedTowerForPlacement.value = null
+        _selectedTowerType.value = null // Use renamed state
         _placementMode.value = false
         Log.d("GameViewModel", "Exited placement mode")
     }
 
     fun togglePlacementMode(towerType: TowerType) {
-        if (_placementMode.value && _selectedTowerForPlacement.value == towerType) {
+        if (_placementMode.value && _selectedTowerType.value == towerType) { // Use renamed state
             exitPlacementMode()
         } else {
             enterPlacementMode(towerType) // Will check affordability
@@ -192,7 +102,7 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
             return
         }
 
-        val towerTypeToPlace = _selectedTowerForPlacement.value
+        val towerTypeToPlace = _selectedTowerType.value // Use renamed state
         if (towerTypeToPlace == null) {
             Log.e("GameViewModel", "Tap ignored: In placement mode but no tower type selected!")
             exitPlacementMode()

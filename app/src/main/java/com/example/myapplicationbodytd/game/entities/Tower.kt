@@ -8,6 +8,7 @@ import com.example.myapplicationbodytd.util.CoordinateConverter
 import kotlin.math.pow
 import kotlin.math.sqrt
 import android.util.Log
+import androidx.compose.runtime.Stable
 
 /**
  * **Inheritance:** Abstract base class for all defensive towers.
@@ -24,6 +25,7 @@ import android.util.Log
  * Delegates the specific attack execution logic (`attackStrategy.execute()`) to this
  * strategy object, allowing attack behavior to be changed independently.
  */
+@Stable
 abstract class Tower(
     val cost: Int,
     val range: Float, // Range in terms of world units (e.g., pixels or dp)
@@ -77,32 +79,44 @@ abstract class Tower(
 
     /**
      * Attempts to find a target and attack if cooldown is ready.
+     * Optimizes by checking the current target first before searching all enemies.
      */
     protected open fun tryAttack() {
-        // Access enemies via the StateFlow's current value
-        val currentEnemies = gameManager.activeEnemies.value
+        // 1. Validate existing target
+        val targetStillValid = currentTarget?.let { !it.isDead && isInRange(it) } == true
 
-        val target = findTarget(currentEnemies)
-        if (target != null) {
-            attack(target)
+        if (targetStillValid) {
+            // If current target is still valid, attack it
+            attack(currentTarget!!) // Safe non-null call due to check
             cooldownTimer = attackCooldown // Reset cooldown
         } else {
-             // No target in range
+            // 2. Current target is invalid (null, dead, or out of range), find a new one
+            currentTarget = null // Explicitly clear invalid target
+            // Access the list directly from GameManager (it's a SnapshotStateList)
+            val newTarget = findTarget(gameManager.activeEnemies)
+            if (newTarget != null) {
+                // Found a new target, attack it
+                attack(newTarget)
+                cooldownTimer = attackCooldown // Reset cooldown
+            } else {
+                // No target found in range
+                // Cooldown will continue ticking down in the next update
+            }
         }
     }
 
     /**
      * Finds a target enemy within range based on a specific strategy.
+     * NOTE: This is potentially expensive and should only be called when necessary.
      * Default: Find the first enemy that entered the range (approximated by path progress).
      * @param enemies List of potential target enemies.
      * @return The targeted Enemy, or null if no valid target is in range.
      */
-    protected open fun findTarget(enemies: List<Enemy>): Enemy? {
-        return enemies
+    protected open fun findTarget(enemies: List<Enemy>): Enemy? { 
+        // Optimized slightly by using sequence for potentially lazy evaluation if needed later
+        return enemies.asSequence()
             .filter { !it.isDead && isInRange(it) }
-             // Find enemy closest to the end of the path (highest path index + progress)
-            .maxByOrNull { it.currentPathIndex + it.progressAlongSegment } 
-            // Alternative: .minByOrNull { calculateDistance(it) } // Closest enemy
+            .maxByOrNull { it.currentPathIndex + it.progressAlongSegment }
     }
 
     /**

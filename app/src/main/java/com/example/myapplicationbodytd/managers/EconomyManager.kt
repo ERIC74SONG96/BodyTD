@@ -3,6 +3,7 @@ package com.example.myapplicationbodytd.managers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import android.util.Log
+import com.example.myapplicationbodytd.util.Constants
 
 /**
  * Manages the player's currency (economy).
@@ -10,7 +11,7 @@ import android.util.Log
  */
 object EconomyManager {
 
-    const val INITIAL_CURRENCY = 50
+    const val INITIAL_CURRENCY = Constants.STARTING_CURRENCY
 
     // Use StateFlow for reactive UI updates
     private val _currency = MutableStateFlow(INITIAL_CURRENCY)

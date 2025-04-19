@@ -1,5 +1,7 @@
 package com.example.myapplicationbodytd.game.map
 
+import com.example.myapplicationbodytd.util.Constants
+
 /**
  * Represents the game map grid and its properties.
  *
@@ -8,8 +10,8 @@ package com.example.myapplicationbodytd.game.map
  * @property grid The 2D list representing the tiles of the map.
  */
 class Map(
-    val width: Int = 15,
-    val height: Int = 15
+    val width: Int = Constants.GRID_SIZE,
+    val height: Int = Constants.GRID_SIZE
 ) {
     // Initialize the grid with default TileInfo objects
     val grid: List<List<TileInfo>> = List(height) { 

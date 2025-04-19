@@ -9,7 +9,7 @@ import androidx.compose.ui.geometry.Size
  */
 object CoordinateConverter {
     // Default tile size if not specified (can be removed or kept as fallback)
-    const val DEFAULT_TILE_SIZE = 50f // KEEPING for now
+    const val DEFAULT_TILE_SIZE = Constants.DEFAULT_TILE_SIZE // KEEPING for now
 
     /**
      * Converts grid coordinates to world coordinates (center of the tile).
