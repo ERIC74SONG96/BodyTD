@@ -63,8 +63,6 @@ object EconomyManager {
         }
     }
 
-    // TODO: Add methods for earning and spending currency (Subtasks 9.2, 9.3)
-
     /**
      * Resets the currency to the starting amount.
      */

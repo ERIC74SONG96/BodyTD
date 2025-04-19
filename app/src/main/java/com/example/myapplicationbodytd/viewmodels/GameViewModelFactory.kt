@@ -3,7 +3,6 @@ package com.example.myapplicationbodytd.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.myapplicationbodytd.managers.GameManager
-import java.lang.IllegalArgumentException
 
 /**
  * Factory for creating instances of GameViewModel with dependencies.

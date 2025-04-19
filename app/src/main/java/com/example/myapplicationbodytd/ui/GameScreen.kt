@@ -1,12 +1,15 @@
 package com.example.myapplicationbodytd.ui
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -17,29 +20,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.myapplicationbodytd.viewmodels.GameViewModel
-import com.example.myapplicationbodytd.viewmodels.GameViewModelFactory
-import com.example.myapplicationbodytd.game.entities.Enemy
-import com.example.myapplicationbodytd.game.entities.Tower
-import com.example.myapplicationbodytd.game.map.TileInfo
-import com.example.myapplicationbodytd.game.map.Map
-import com.example.myapplicationbodytd.util.Constants
-import com.example.myapplicationbodytd.util.CoordinateConverter
-import com.example.myapplicationbodytd.game.states.GameState
-import com.example.myapplicationbodytd.R
-import androidx.compose.runtime.collectAsState
 import com.example.myapplicationbodytd.game.entities.Bacteria
-import com.example.myapplicationbodytd.game.entities.FineParticle
-import com.example.myapplicationbodytd.game.entities.Virus
 import com.example.myapplicationbodytd.game.entities.CoughTower
+import com.example.myapplicationbodytd.game.entities.Enemy
+import com.example.myapplicationbodytd.game.entities.FineParticle
 import com.example.myapplicationbodytd.game.entities.MacrophageTower
 import com.example.myapplicationbodytd.game.entities.MucusTower
-import androidx.compose.ui.graphics.StrokeCap
+import com.example.myapplicationbodytd.game.entities.Tower
+import com.example.myapplicationbodytd.game.entities.Virus
+import com.example.myapplicationbodytd.game.map.Map
+import com.example.myapplicationbodytd.game.states.GameState
+import com.example.myapplicationbodytd.util.Constants
+import com.example.myapplicationbodytd.util.CoordinateConverter
+import com.example.myapplicationbodytd.viewmodels.GameViewModel
+import com.example.myapplicationbodytd.viewmodels.GameViewModelFactory
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 
 //enum class TowerType { MUCUS, MACROPHAGE, COUGH } // Define if not already elsewhere
 
@@ -52,135 +54,179 @@ fun GameScreen(viewModelFactory: GameViewModelFactory) {
     val gameViewModel: GameViewModel = viewModel(factory = viewModelFactory)
 
     // --- Observe ViewModel State --- 
-    // Directly access SnapshotStateLists (Compose observes them)
     val enemies = gameViewModel.enemies
     val towers = gameViewModel.towers
-
-    // Collect StateFlows
     val lives by gameViewModel.lives.collectAsState()
     val currency by gameViewModel.currency.collectAsState()
     val currentWave by gameViewModel.currentWave.collectAsState()
     val gameState by gameViewModel.gameState.collectAsState()
     val drawTick by gameViewModel.drawTick.collectAsState() 
+    val isGameOver by gameViewModel.isGameOver.collectAsState() // Observe Game Over state
+    val waveClearMessage by gameViewModel.waveClearMessage.collectAsState() // Observe message
 
-    // Access State properties via delegate
     val placementMode by gameViewModel.placementMode
-    val selectedTowerType by gameViewModel.selectedTowerType // Use renamed property
-
-    // Access static map
+    val selectedTowerType by gameViewModel.selectedTowerType
     val map = gameViewModel.gameMap
-
-    // Access constant
     val maxWaves = gameViewModel.maxWaves
-
-    // Remember the last reported cell size to avoid redundant updates
     var lastReportedCellSize by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(Unit) {
-        // Initial game setup if needed (e.g., start game loop via ViewModel)
         Log.d("GameScreen", "GameScreen LaunchedEffect")
-        // gameViewModel.startGame() // Example if you have such a method
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Top HUD Area
-        HUD(
-            currency = currency, 
-            lives = lives, 
-            wave = currentWave, 
-            gameState = gameState, // Pass gameState
-            onStartWaveClick = { // Pass lambda
-                gameViewModel.requestNextWave()
-            }
-        )
+    // Use a Box to allow overlaying the Game Over UI
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top HUD Area
+            HUD(
+                currency = currency, 
+                lives = lives, 
+                wave = currentWave, 
+                gameState = gameState, 
+                onStartWaveClick = { 
+                    gameViewModel.requestNextWave()
+                }
+            )
 
-        // Game Area (Canvas)
-        Box(
-            modifier = Modifier
-                .weight(1f) // Takes up remaining space
-                .padding(8.dp)
-                .aspectRatio(1f), // Maintain square aspect ratio
-            contentAlignment = Alignment.Center
-        ) {
-            // Define Canvas directly within GameScreen
-            Canvas( 
+            // Game Area (Canvas)
+            Box(
                 modifier = Modifier
-                    .fillMaxSize() // Fill the constrained box
-                    .pointerInput(Unit) { // Add pointerInput for tap detection
-                        detectTapGestures { tapOffset ->
-                             // Calculate tile size and offset based on current DrawScope size
-                             // This calculation needs to be done here to convert tap to grid
-                            val canvasWidth = size.width.toFloat()
-                            val canvasHeight = size.height.toFloat()
-                            val tileSizeWidth = canvasWidth / map.width
-                            val tileSizeHeight = canvasHeight / map.height
-                            val tileSize = minOf(tileSizeWidth, tileSizeHeight)
-                            val totalGridWidth = tileSize * map.width
-                            val totalGridHeight = tileSize * map.height
-                            val offsetX = (canvasWidth - totalGridWidth) / 2f
-                            val offsetY = (canvasHeight - totalGridHeight) / 2f
+                    .weight(1f) // Takes up remaining space
+                    .padding(8.dp)
+                    .aspectRatio(1f), // Maintain square aspect ratio
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas( 
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) { 
+                            detectTapGestures { tapOffset ->
+                                val canvasWidth = size.width.toFloat()
+                                val canvasHeight = size.height.toFloat()
+                                val tileSizeWidth = canvasWidth / map.width
+                                val tileSizeHeight = canvasHeight / map.height
+                                val tileSize = minOf(tileSizeWidth, tileSizeHeight)
+                                val totalGridWidth = tileSize * map.width
+                                val totalGridHeight = tileSize * map.height
+                                val offsetX = (canvasWidth - totalGridWidth) / 2f
+                                val offsetY = (canvasHeight - totalGridHeight) / 2f
 
-                            if (tileSize > 0f) { // Ensure tileSize is valid
-                                val gridCoords = CoordinateConverter.worldToGrid(
-                                    tapOffset.x,
-                                    tapOffset.y,
-                                    tileSize,
-                                    offsetX,
-                                    offsetY
-                                )
+                                if (tileSize > 0f) {
+                                    val gridCoords = CoordinateConverter.worldToGrid(
+                                        tapOffset.x,
+                                        tapOffset.y,
+                                        tileSize,
+                                        offsetX,
+                                        offsetY
+                                    )
 
-                                Log.d("GameScreen", "Canvas tapped at Offset: $tapOffset -> Grid: $gridCoords")
-                                if (gridCoords.first in 0 until map.width && 
-                                    gridCoords.second in 0 until map.height) {
-                                    gameViewModel.handleTileTap(gridCoords.first, gridCoords.second)
-                                } else {
-                                    Log.w("GameScreen", "Tap outside defined grid bounds ignored.")
+                                    Log.d("GameScreen", "Canvas tapped at Offset: $tapOffset -> Grid: $gridCoords")
+                                    if (gridCoords.first in 0 until map.width && 
+                                        gridCoords.second in 0 until map.height) {
+                                        gameViewModel.handleTileTap(gridCoords.first, gridCoords.second)
+                                    } else {
+                                        Log.w("GameScreen", "Tap outside defined grid bounds ignored.")
+                                    }
                                 }
                             }
                         }
+                ) {
+                    val currentTick = drawTick
+                    Log.v("GameScreenCanvas", "Redrawing canvas on Tick: $currentTick")
+
+                    val canvasWidth = size.width
+                    val canvasHeight = size.height
+                    val tileSizeWidth = canvasWidth / map.width
+                    val tileSizeHeight = canvasHeight / map.height
+                    val tileSize = minOf(tileSizeWidth, tileSizeHeight)
+                    val totalGridWidth = tileSize * map.width
+                    val totalGridHeight = tileSize * map.height
+                    val offsetX = (canvasWidth - totalGridWidth) / 2f
+                    val offsetY = (canvasHeight - totalGridHeight) / 2f
+
+                    if (tileSize > 0f && tileSize != lastReportedCellSize) {
+                        Log.d("GameScreenCanvas", "Reporting new cell size: $tileSize (was $lastReportedCellSize)")
+                        gameViewModel.updateCellSize(tileSize)
+                        lastReportedCellSize = tileSize 
                     }
+
+                    drawGridInternal(map, tileSize, offsetX, offsetY)
+                    if (placementMode && selectedTowerType != null) {
+                        drawPlacementHighlightsInternal(map, towers, tileSize, offsetX, offsetY)
+                    }
+                    drawTowersInternal(towers, tileSize, offsetX, offsetY)
+                    drawEnemiesInternal(enemies, tileSize, offsetX, offsetY)
+                    drawAttackEffectsInternal(towers, offsetX, offsetY)
+                }
+            }
+
+            // Bottom Control Area (Tower Selection)
+            TowerSelectionPanel(
+                currentCurrency = currency,
+                selectedTowerType = selectedTowerType,
+                onTowerSelected = { towerType: TowerType -> gameViewModel.togglePlacementMode(towerType) },
+                gameViewModel = gameViewModel
+            )
+        }
+
+        // Wave Cleared Message Overlay (Conditionally displayed)
+        waveClearMessage?.let { message ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 100.dp), // Adjust padding to position above tower panel
+                contentAlignment = Alignment.Center
             ) {
-                // --- Drawing Logic moved inside Canvas lambda --- 
-                val currentTick = drawTick // Read the tick value to ensure dependency
-                Log.v("GameScreenCanvas", "Redrawing canvas on Tick: $currentTick")
-
-                val canvasWidth = size.width
-                val canvasHeight = size.height
-
-                // Calculate tile size and offsets for drawing
-                val tileSizeWidth = canvasWidth / map.width
-                val tileSizeHeight = canvasHeight / map.height
-                val tileSize = minOf(tileSizeWidth, tileSizeHeight)
-                val totalGridWidth = tileSize * map.width
-                val totalGridHeight = tileSize * map.height
-                val offsetX = (canvasWidth - totalGridWidth) / 2f
-                val offsetY = (canvasHeight - totalGridHeight) / 2f
-
-                // Report cell size back to ViewModel/GameManager if it changed
-                if (tileSize > 0f && tileSize != lastReportedCellSize) {
-                    Log.d("GameScreenCanvas", "Reporting new cell size: $tileSize (was $lastReportedCellSize)")
-                    gameViewModel.updateCellSize(tileSize)
-                    lastReportedCellSize = tileSize // Update the remembered value
-                }
-
-                // Call drawing functions (defined below or inline)
-                drawGridInternal(map, tileSize, offsetX, offsetY)
-                if (placementMode && selectedTowerType != null) {
-                    drawPlacementHighlightsInternal(map, towers, tileSize, offsetX, offsetY)
-                }
-                drawTowersInternal(towers, tileSize, offsetX, offsetY)
-                drawEnemiesInternal(enemies, tileSize, offsetX, offsetY)
-                drawAttackEffectsInternal(towers, offsetX, offsetY)
+                 // Box with semi-transparent background for better readability
+                 Box(
+                     modifier = Modifier
+                         .wrapContentSize()
+                         .background(Color.Black.copy(alpha = 0.6f), shape = MaterialTheme.shapes.medium)
+                         .padding(horizontal = 16.dp, vertical = 8.dp)
+                 ) {
+                    Text(
+                        text = message,
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center
+                    )
+                 }
             }
         }
 
-        // Bottom Control Area (Tower Selection)
-        TowerSelectionPanel(
-            selectedTower = selectedTowerType,
-            onTowerSelect = { towerType ->
-                gameViewModel.togglePlacementMode(towerType)
+        // Game Over / Win Overlay (Conditionally displayed)
+        if (isGameOver) {
+            val overlayText = when (gameState) {
+                is com.example.myapplicationbodytd.game.states.WonState -> "You Won!"
+                is com.example.myapplicationbodytd.game.states.LostState -> "Game Over"
+                else -> "Game Finished" // Fallback, should not happen if isGameOver is true
             }
-        )
+            val overlayColor = when (gameState) {
+                is com.example.myapplicationbodytd.game.states.WonState -> Color.Green
+                is com.example.myapplicationbodytd.game.states.LostState -> Color.Red
+                else -> Color.White
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f)), // Semi-transparent background
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = overlayText,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = overlayColor // Use dynamic color
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { gameViewModel.restartGame() }) {
+                        Text("Restart")
+                    }
+                    // Add Quit button if needed
+                }
+            }
+        }
     }
 }
 
@@ -401,52 +447,72 @@ fun HUD(
 
 @Composable
 fun TowerSelectionPanel(
-    selectedTower: TowerType?,
-    onTowerSelect: (TowerType) -> Unit
+    currentCurrency: Int,
+    selectedTowerType: TowerType?,
+    onTowerSelected: (TowerType) -> Unit,
+    gameViewModel: GameViewModel
 ) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        TowerType.entries.forEach { towerType ->
-            TowerButton(
-                towerType = towerType,
-                isSelected = selectedTower == towerType,
-                onClick = { onTowerSelect(towerType) }
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Build Towers",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TowerType.entries.forEach { towerType ->
+                    val cost = gameViewModel.getTowerCost(towerType) ?: 0
+
+                    TowerButton(
+                        towerType = towerType,
+                        cost = cost,
+                        currentCurrency = currentCurrency,
+                        isSelected = selectedTowerType == towerType,
+                        onClick = { onTowerSelected(towerType) }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-fun TowerButton(
+private fun TowerButton(
     towerType: TowerType,
+    cost: Int,
+    currentCurrency: Int,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    // Basic Button implementation - enhance with icons, cost display etc.
+    val canAfford = currentCurrency >= cost
+    val border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
+
     Button(
         onClick = onClick,
-        modifier = Modifier.padding(4.dp),
-        // Highlight if selected
+        enabled = canAfford,
+        border = border,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+            // Optional: Different color when selected?
         )
     ) {
-        Text(towerType.name.take(5)) // Short name for button
-        // TODO: Add cost display? (e.g., Text("$${getTowerCost(towerType)}")) - requires cost logic access
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(towerType.name.replaceFirstChar { it.titlecase() }) // Basic name formatting
+            Spacer(Modifier.height(4.dp))
+            Text("Cost: $cost", style = MaterialTheme.typography.bodySmall)
+        }
     }
-}
-
-// Helper to get cost (might need ViewModel access or pass costs down)
-fun getTowerCost(towerType: TowerType): Int {
-     return when (towerType) {
-         TowerType.MUCUS -> com.example.myapplicationbodytd.game.entities.MucusTower.COST // Replace with actual cost access
-         TowerType.MACROPHAGE -> com.example.myapplicationbodytd.game.entities.MacrophageTower.COST
-         TowerType.COUGH -> com.example.myapplicationbodytd.game.entities.CoughTower.COST
-     }
 }
 
 // Remove the old @Preview as it likely won't work without a Factory

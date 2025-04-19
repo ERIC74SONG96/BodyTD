@@ -1,27 +1,29 @@
 package com.example.myapplicationbodytd.managers
 
+import android.util.Log
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.example.myapplicationbodytd.game.entities.Enemy
+import com.example.myapplicationbodytd.game.entities.Tower
+import com.example.myapplicationbodytd.game.map.Map
 import com.example.myapplicationbodytd.game.states.GameState
 import com.example.myapplicationbodytd.game.states.InitializingState
-import kotlinx.coroutines.*
+import com.example.myapplicationbodytd.game.states.PlayingState
+import com.example.myapplicationbodytd.util.Constants
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.time.TimeSource
-import android.util.Log
-import com.example.myapplicationbodytd.game.entities.Enemy
-import com.example.myapplicationbodytd.game.entities.Tower
-import com.example.myapplicationbodytd.game.map.Map
-import com.example.myapplicationbodytd.game.states.LostState
-import com.example.myapplicationbodytd.game.states.PlayingState
-import com.example.myapplicationbodytd.game.states.WonState
-import com.example.myapplicationbodytd.managers.EconomyManager
-import com.example.myapplicationbodytd.util.Constants
-import com.example.myapplicationbodytd.util.CoordinateConverter
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import kotlin.time.TimeSource
 
 /**
  * Interface for game objects that need periodic updates.
@@ -64,11 +66,9 @@ object GameManager {
 
     // Target update rate (e.g., 60 updates per second)
     private const val TARGET_UPDATES_PER_SECOND = 60
-    private const val TIME_STEP_NANOS = 1_000_000_000L / TARGET_UPDATES_PER_SECOND
 
     // Game Progress Tracking
     const val MAX_WAVES = Constants.WAVES_TO_WIN // Use Constant
-    const val MAX_LIVES_LOST = Constants.MAX_LIVES // Use Constant
     private const val STARTING_LIVES = Constants.MAX_LIVES // Use Constant
 
     // --- Reactive Game State using StateFlow ---
@@ -93,6 +93,14 @@ object GameManager {
     // StateFlow to explicitly trigger recomposition in the UI
     private val _drawTick = MutableStateFlow(0L)
     val drawTick: StateFlow<Long> = _drawTick.asStateFlow()
+
+    // StateFlow for Game Over overlay
+    private val _isGameOver = MutableStateFlow(false)
+    val isGameOver: StateFlow<Boolean> = _isGameOver.asStateFlow()
+
+    // StateFlow for Wave Cleared message
+    private val _waveClearMessage = MutableStateFlow<String?>(null)
+    val waveClearMessage: StateFlow<String?> = _waveClearMessage.asStateFlow()
 
     // Initialize and start the game loop
     init {
@@ -301,5 +309,61 @@ object GameManager {
             // Optionally log or notify other systems if needed
             // Log.d("GameManager", "Cell size updated to $newSize")
         }
+    }
+
+    // Called by LostState/WonState to signal UI
+    fun setGameOver(isOver: Boolean) {
+        _isGameOver.value = isOver
+    }
+
+    /**
+     * Resets the entire game state to its initial configuration.
+     */
+    fun reset() {
+        Log.i("GameManager", "Resetting game state...")
+        // Stop the current loop before changing state
+        stopGameLoop()
+
+        // Reset Core Game State
+        _lives.value = STARTING_LIVES
+        _currentWave.value = 0
+        _isGameOver.value = false
+
+        // Reset Managers
+        EconomyManager.reset() // Reset currency
+        _currency.value = EconomyManager.getCurrentCurrency() // Update StateFlow after reset
+        WaveManager.reset() // Reset wave progression
+
+        // Clear All Game Objects Safely
+        gameObjectsLock.withLock {
+            // Create a copy for safe iteration while removing
+            val objectsToRemove = ArrayList(gameObjects)
+            objectsToRemove.forEach { obj ->
+                // Use unregisterGameObject to ensure SnapshotStateLists are also updated
+                unregisterGameObject(obj)
+            }
+            // Double-check lists are empty (should be handled by unregisterGameObject)
+            if (gameObjects.isNotEmpty() || _activeEnemies.isNotEmpty() || _placedTowers.isNotEmpty()) {
+                Log.w("GameManager", "Game object lists not fully cleared during reset. Force clearing.")
+                gameObjects.clear()
+                _activeEnemies.clear()
+                _placedTowers.clear()
+            }
+        }
+
+        // Reset Map State (if applicable - currently static)
+        // gameMap.reset() // Example if map needed resetting
+
+        // Reset Cell Size (optional, or keep last known size)
+        // currentCellSize = Constants.DEFAULT_TILE_SIZE
+
+        // Restart the game loop
+        startGameLoop()
+        Log.i("GameManager", "Game reset complete. New game loop started.")
+    }
+
+    /** Sets or clears the message displayed between waves */
+    fun setWaveClearMessage(message: String?) {
+        _waveClearMessage.value = message
     }
 }

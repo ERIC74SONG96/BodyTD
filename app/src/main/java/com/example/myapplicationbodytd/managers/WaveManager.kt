@@ -1,8 +1,7 @@
 package com.example.myapplicationbodytd.managers
 
-import com.example.myapplicationbodytd.game.entities.Enemy
-import com.example.myapplicationbodytd.game.factories.EnemyFactory
 import android.util.Log
+import com.example.myapplicationbodytd.game.factories.EnemyFactory
 
 /**
  * Data class representing a single spawn instruction within a wave.
@@ -169,5 +168,18 @@ object WaveManager : Updatable {
     }
 
     fun getCurrentWaveStatus(): WaveStatus = status
-    fun getCurrentWaveNumber(): Int = currentWaveNumber
+
+    /**
+     * Resets the WaveManager to its initial state.
+     */
+    fun reset() {
+        Log.d("WaveManager", "Resetting WaveManager state.")
+        status = WaveStatus.WAITING_TO_START
+        currentWaveNumber = 0
+        enemiesSpawnedThisWave = 0
+        enemiesRemainingThisWave = 0
+        currentSpawnIndex = 0
+        currentWaveSpawns = emptyList()
+        timeUntilNextSpawn = 0f
+    }
 }

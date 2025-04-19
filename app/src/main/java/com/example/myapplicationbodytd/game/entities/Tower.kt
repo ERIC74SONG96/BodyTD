@@ -9,6 +9,7 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 import android.util.Log
 import androidx.compose.runtime.Stable
+import com.example.myapplicationbodytd.util.Constants
 
 /**
  * **Inheritance:** Abstract base class for all defensive towers.
@@ -27,7 +28,6 @@ import androidx.compose.runtime.Stable
  */
 @Stable
 abstract class Tower(
-    val cost: Int,
     val range: Float, // Range in terms of world units (e.g., pixels or dp)
     val attackRate: Float, // Attacks per second
     var attackStrategy: AttackStrategy,
@@ -50,7 +50,7 @@ abstract class Tower(
     var currentTarget: Enemy? = null
         protected set
     var attackEffectTimer: Float = 0f
-    private val attackEffectDuration: Float = 0.15f // Show attack line for 0.15 seconds
+    private val attackEffectDuration: Float = Constants.ATTACK_EFFECT_DURATION // Use constant
 
     init {
         gameManager.registerGameObject(this) // Register for updates

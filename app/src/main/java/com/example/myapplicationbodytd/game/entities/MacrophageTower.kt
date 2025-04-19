@@ -7,7 +7,6 @@ class MacrophageTower(
     position: Pair<Int, Int>,
     gameManager: GameManager
 ) : Tower(
-    cost = COST, // Use companion object constant
     range = 150f, // Assuming range 3 means 3 * tile size (50f)
     attackRate = 0.5f, // Slower attack rate
     attackStrategy = HeavyDamageAttack(damageMultiplier = 2.5f), // Higher damage multiplier

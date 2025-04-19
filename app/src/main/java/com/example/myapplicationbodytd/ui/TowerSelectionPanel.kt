@@ -15,19 +15,18 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.myapplicationbodytd.ui.TowerType
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myapplicationbodytd.viewmodels.GameViewModel
+import com.example.myapplicationbodytd.managers.GameManager
 
 /**
  * Composable panel for selecting towers to place.
@@ -35,13 +34,15 @@ import com.example.myapplicationbodytd.ui.TowerType
  * @param currentCurrency The player's current currency (as Int).
  * @param selectedTowerType The currently selected tower type for placement (as TowerType?).
  * @param onTowerSelected Callback function when a tower button is clicked.
+ * @param gameViewModel Reference to the GameViewModel to access cost information.
  */
 @Composable
 fun TowerSelectionPanel(
     modifier: Modifier = Modifier,
     currentCurrency: Int,
     selectedTowerType: TowerType?,
-    onTowerSelected: (TowerType) -> Unit
+    onTowerSelected: (TowerType) -> Unit,
+    gameViewModel: GameViewModel
 ) {
     Card(
         modifier = modifier
@@ -64,8 +65,7 @@ fun TowerSelectionPanel(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TowerType.entries.forEach { towerType ->
-                    // TODO: Get cost from centralized source (Task 5)
-                    val cost = getTowerCostStatically(towerType) // Use helper
+                    val cost = gameViewModel.getTowerCost(towerType) ?: 0
 
                     TowerButton(
                         towerType = towerType,
@@ -77,16 +77,6 @@ fun TowerSelectionPanel(
                 }
             }
         }
-    }
-}
-
-// Helper to get static costs (until Task 5 fully integrated)
-// This should ideally live in ViewModel or a shared utility
-private fun getTowerCostStatically(towerType: TowerType): Int {
-    return when (towerType) {
-        TowerType.MUCUS -> 10 // Hardcoded for now
-        TowerType.MACROPHAGE -> 20
-        TowerType.COUGH -> 10
     }
 }
 
@@ -122,12 +112,15 @@ private fun TowerButton(
 fun TowerSelectionPanelPreview() {
     // Use plain values for preview state
     var selectedTowerPreview by remember { mutableStateOf<TowerType?>(TowerType.MUCUS) }
+    // Create a real ViewModel instance using the singleton GameManager
+    val previewViewModel = GameViewModel(GameManager)
 
     MaterialTheme {
         TowerSelectionPanel(
             currentCurrency = 15,
             selectedTowerType = selectedTowerPreview,
-            onTowerSelected = { selectedTowerPreview = if (selectedTowerPreview == it) null else it }
+            onTowerSelected = { selectedTowerPreview = if (selectedTowerPreview == it) null else it },
+            gameViewModel = previewViewModel // Pass the real (preview) ViewModel
         )
     }
 } 

@@ -1,5 +1,4 @@
 package com.example.myapplicationbodytd
-// EXAMPLE FILE //
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,11 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.example.myapplicationbodytd.managers.GameManager
 import com.example.myapplicationbodytd.ui.GameScreen
-// Remove unused Map and WaveManager imports if GameManager is singleton
-// import com.example.myapplicationbodytd.game.map.Map
-// import com.example.myapplicationbodytd.managers.WaveManager
-import com.example.myapplicationbodytd.managers.GameManager // Import the singleton object
 import com.example.myapplicationbodytd.viewmodels.GameViewModelFactory
 
 class MainActivity : ComponentActivity() {
@@ -38,4 +34,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-// EXAMPLE FILE //

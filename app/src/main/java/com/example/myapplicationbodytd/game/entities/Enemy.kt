@@ -1,13 +1,13 @@
 package com.example.myapplicationbodytd.game.entities
 
+import android.util.Log
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
 import com.example.myapplicationbodytd.managers.GameManager
 import com.example.myapplicationbodytd.managers.Updatable
 import com.example.myapplicationbodytd.util.CoordinateConverter
 import kotlin.math.max
-import android.util.Log
-import androidx.compose.runtime.Stable
 
 /**
  * **Inheritance:** Base class for all enemy types.
@@ -286,6 +286,4 @@ abstract class Enemy(
         updatePosition() // Update visual position immediately
         Log.d("Enemy", "Pushed back to index $currentPathIndex, progress $progressAlongSegment")
     }
-
-    // TODO: Implement path completion logic (Subtask 4.5)
 } 

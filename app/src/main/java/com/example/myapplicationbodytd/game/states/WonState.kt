@@ -7,18 +7,22 @@ class WonState(gameManager: GameManager) : GameState(gameManager) {
 
     override fun enter() {
         Log.d("GameState", "Entering Won State - Congratulations!")
-        // TODO: Display victory UI
+        // TODO: Display victory UI -> Handled by ViewModel/UI observing state
         // TODO: Stop game loop or pause updates
-        // TODO: Provide options to restart or quit
+        gameManager.stopGameLoop()
+        // TODO: Provide options to restart or quit -> Handled by ViewModel/UI observing state
+        // Reuse isGameOver flag, UI will differentiate text based on actual state
+        gameManager.setGameOver(true) 
     }
 
     override fun update(deltaTime: Float) {
-        // Typically no updates needed here, waits for player input (restart/quit)
+        // Game loop is stopped, no updates needed
     }
 
     override fun exit() {
         Log.d("GameState", "Exiting Won State")
-        // TODO: Hide victory UI
-        // TODO: Reset game if restarting
+        // TODO: Hide victory UI -> Handled by ViewModel/UI observing state
+        gameManager.setGameOver(false)
+        // TODO: Reset game if restarting -> Reset is triggered by ViewModel calling changeState
     }
 } 

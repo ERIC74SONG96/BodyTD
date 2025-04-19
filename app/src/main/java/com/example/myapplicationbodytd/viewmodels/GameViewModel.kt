@@ -1,30 +1,22 @@
 package com.example.myapplicationbodytd.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.example.myapplicationbodytd.game.entities.CoughTower
 import com.example.myapplicationbodytd.game.entities.Enemy
-import com.example.myapplicationbodytd.game.entities.Tower
-import com.example.myapplicationbodytd.game.entities.CoughTower // Import specific towers
 import com.example.myapplicationbodytd.game.entities.MacrophageTower
 import com.example.myapplicationbodytd.game.entities.MucusTower
-import com.example.myapplicationbodytd.managers.GameManager
+import com.example.myapplicationbodytd.game.entities.Tower
 import com.example.myapplicationbodytd.game.map.Map
-import android.util.Log
-import androidx.compose.runtime.mutableIntStateOf
+import com.example.myapplicationbodytd.game.states.GameState
+import com.example.myapplicationbodytd.managers.GameManager
 import com.example.myapplicationbodytd.ui.TowerType
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.CancellationException
-import com.example.myapplicationbodytd.managers.WaveManager
-import com.example.myapplicationbodytd.game.states.GameState // Import GameState
-import kotlinx.coroutines.flow.StateFlow // Import StateFlow
-import com.example.myapplicationbodytd.game.states.WaveClearedState // Import specific state
-import androidx.compose.runtime.snapshots.SnapshotStateList // Import SnapshotStateList
-import com.example.myapplicationbodytd.util.CoordinateConverter
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import com.example.myapplicationbodytd.game.factories.TowerFactory
+import com.example.myapplicationbodytd.game.states.InitializingState
 
 /**
  * ViewModel for the main Game Screen.
@@ -44,6 +36,8 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
     val currentWave: StateFlow<Int> = gameManager.currentWave
     val maxWaves: Int = GameManager.MAX_WAVES
     val drawTick: StateFlow<Long> = gameManager.drawTick
+    val isGameOver: StateFlow<Boolean> = gameManager.isGameOver
+    val waveClearMessage: StateFlow<String?> = gameManager.waveClearMessage
 
     // Expose SnapshotStateLists directly - Compose observes these
     val enemies: SnapshotStateList<Enemy> = gameManager.activeEnemies
@@ -121,13 +115,11 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
             return
         }
 
-        // TODO: Update GameManager interface/methods if needed for canPlaceTowerAt
-        if (gameManager.canPlaceTowerAt(x, y)) { // Placeholder check
+        if (gameManager.canPlaceTowerAt(x, y)) {
             Log.d("GameViewModel", "Placement location seems valid for $towerTypeToPlace at ($x, $y).")
 
-            // Create the actual Tower instance
-            // TODO: Use a TowerFactory or more robust creation mechanism
-            val towerInstance: Tower? = createTowerInstance(towerTypeToPlace, x, y)
+            // Create the actual Tower instance using the factory
+            val towerInstance: Tower? = TowerFactory.createTower(towerTypeToPlace, Pair(x, y), gameManager)
 
             if (towerInstance != null) {
                 // Attempt placement via GameManager (handles cost check again internally + registration)
@@ -139,7 +131,7 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
                     exitPlacementMode() // Exit if placement fails
                 }
             } else {
-                Log.e("GameViewModel", "Could not create instance for tower type $towerTypeToPlace")
+                Log.e("GameViewModel", "TowerFactory failed to create instance for tower type $towerTypeToPlace")
                 exitPlacementMode()
             }
         } else {
@@ -149,7 +141,7 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
     }
 
     // Helper function to get cost from Tower companion objects
-    private fun getTowerCost(towerType: TowerType): Int? {
+    internal fun getTowerCost(towerType: TowerType): Int? {
         return when (towerType) {
             TowerType.MUCUS -> MucusTower.COST
             TowerType.MACROPHAGE -> MacrophageTower.COST
@@ -158,22 +150,19 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
         }
     }
 
-    // Helper function to create tower instances
-    private fun createTowerInstance(towerType: TowerType, x: Int, y: Int): Tower? {
-         return when (towerType) {
-             TowerType.MUCUS -> MucusTower(Pair(x, y), gameManager)
-             TowerType.MACROPHAGE -> MacrophageTower(Pair(x, y), gameManager)
-             TowerType.COUGH -> CoughTower(Pair(x, y), gameManager)
-             // Add other tower types here
-         }
-    }
-
-    // TODO: Add functions to update currency from enemy defeats (called by GameManager)
-
     // --- Game Actions ---
     fun requestNextWave() {
         Log.d("GameViewModel", "Requesting GameManager to start the next wave.")
         gameManager.requestNextWave()
+    }
+
+    fun restartGame() {
+        Log.d("GameViewModel", "Restarting game...")
+        // TODO: Implement full reset logic in GameManager or InitializingState
+        // The reset logic is now called within InitializingState.enter() via GameManager.reset()
+        gameManager.changeState(InitializingState(gameManager))
+        // Ensure game loop restarts if it was stopped
+        // gameManager.startGameLoop() // GameManager needs a public startGameLoop or reset method
     }
 
     // --- Configuration Updates ---
