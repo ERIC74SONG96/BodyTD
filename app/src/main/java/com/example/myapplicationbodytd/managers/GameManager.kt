@@ -24,6 +24,7 @@ import kotlinx.coroutines.yield
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.time.TimeSource
+import com.example.myapplicationbodytd.game.effects.Effect
 
 /**
  * Interface for game objects that need periodic updates.
@@ -89,6 +90,10 @@ object GameManager {
 
     private val _placedTowers = mutableStateListOf<Tower>()
     val placedTowers: SnapshotStateList<Tower> = _placedTowers
+
+    // Add list for active effects
+    private val _activeEffects = mutableStateListOf<Effect>()
+    val activeEffects: SnapshotStateList<Effect> = _activeEffects
 
     // StateFlow to explicitly trigger recomposition in the UI
     private val _drawTick = MutableStateFlow(0L)
@@ -218,6 +223,18 @@ object GameManager {
 
         // Win/loss checks are handled within specific states (e.g., PlayingState)
         // Example: PlayingState now checks lives and wave completion and calls changeState
+
+        // Update Effects
+        gameObjectsLock.withLock { // Lock while modifying effects list
+            val effectsIterator = _activeEffects.iterator()
+            while (effectsIterator.hasNext()) {
+                val effect = effectsIterator.next()
+                effect.update(deltaTime)
+                if (effect.isFinished) {
+                    effectsIterator.remove()
+                }
+            }
+        }
     }
 
     fun stopGameLoop() {
@@ -328,6 +345,7 @@ object GameManager {
         _lives.value = STARTING_LIVES
         _currentWave.value = 0
         _isGameOver.value = false
+        _waveClearMessage.value = null // Also reset message
 
         // Reset Managers
         EconomyManager.reset() // Reset currency
@@ -349,6 +367,8 @@ object GameManager {
                 _activeEnemies.clear()
                 _placedTowers.clear()
             }
+            // Clear effects list too
+            _activeEffects.clear()
         }
 
         // Reset Map State (if applicable - currently static)
@@ -365,5 +385,12 @@ object GameManager {
     /** Sets or clears the message displayed between waves */
     fun setWaveClearMessage(message: String?) {
         _waveClearMessage.value = message
+    }
+
+    /** Adds a visual effect to be managed and drawn. */
+    fun addEffect(effect: Effect) {
+        gameObjectsLock.withLock {
+            _activeEffects.add(effect)
+        }
     }
 }

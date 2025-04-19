@@ -8,6 +8,10 @@ import com.example.myapplicationbodytd.managers.GameManager
 import com.example.myapplicationbodytd.managers.Updatable
 import com.example.myapplicationbodytd.util.CoordinateConverter
 import kotlin.math.max
+import androidx.compose.ui.graphics.Color
+import com.example.myapplicationbodytd.game.effects.FadeEffect
+import com.example.myapplicationbodytd.game.effects.HitEffect
+import com.example.myapplicationbodytd.util.Constants
 
 /**
  * **Inheritance:** Base class for all enemy types.
@@ -67,6 +71,25 @@ abstract class Enemy(
         // Register with GameManager for updates
         gameManager.registerGameObject(this)
     }
+
+    /**
+     * Helper to get the enemy color based on type (used for effect)
+     * This could also be an abstract property
+     */
+    protected val enemyColor: Color
+        get() = when (this) {
+            is Virus -> Color.Magenta
+            is Bacteria -> Color.Red
+            is FineParticle -> Color.Gray
+            else -> Color.Black
+        }
+        
+    /**
+     * Helper to get the enemy radius (used for effect)
+     * Depends on current tile size
+     */
+    protected val enemyRadius: Float
+        get() = gameManager.currentCellSize * Constants.ENEMY_RELATIVE_SIZE / 2f
 
     /**
      * Calculates the enemy's current world position based on its progress along the path segment.
@@ -206,18 +229,19 @@ abstract class Enemy(
 
     /**
      * Called when the enemy's health reaches 0 or below.
-     * Handles cleanup and notifies the GameManager.
-     * Can be overridden by subclasses for specific death behaviors (animations, effects).
+     * Creates a death effect, notifies GameManager, and unregisters.
      */
     protected open fun onDeath() {
-        Log.d("Enemy", "Died!")
-        // Notify GameManager about the death
-        gameManager.enemyDestroyed(this) 
+        //Log.d("Enemy-"${getType()}, "Died!") // Log type
+        
+        // Create death effect before unregistering
+        gameManager.addEffect(FadeEffect(position, enemyColor, enemyRadius))
+        
+        // Notify GameManager about the death (for score/currency)
+        gameManager.enemyDestroyed(this)
 
-        // Unregister from game updates
+        // Unregister from game updates AFTER creating effect and notifying
         gameManager.unregisterGameObject(this)
-
-        // TODO: Trigger death animations or effects here
     }
 
     /**
@@ -225,15 +249,10 @@ abstract class Enemy(
      * Handles cleanup and notifies the GameManager.
      */
     protected open fun onReachEnd() {
-        Log.d("Enemy", "Reached end of path!")
-        // Notify GameManager that an enemy reached the end
+        //Log.d("Enemy-"${getType()}, "Reached end of path!") // Log type
         gameManager.enemyReachedEnd(this)
-
-        // Unregister from game updates
         gameManager.unregisterGameObject(this)
-
-        // Mark as effectively dead or inactive to prevent further interactions
-        health = 0f // Or add a separate 'isActive' flag
+        health = 0f // Mark as inactive
     }
 
     /**
@@ -245,10 +264,10 @@ abstract class Enemy(
 
     /**
      * Virtual method called when the enemy is hit by an attack (before damage calculation).
-     * Can be overridden by subclasses for custom reactions (e.g., visual effects).
+     * Creates a HitEffect.
      */
     open fun onHit() {
-        // Placeholder for hit effects
+        gameManager.addEffect(HitEffect(position, enemyRadius))
     }
 
     /**
@@ -258,7 +277,7 @@ abstract class Enemy(
     open fun applyPushBack(distance: Float) {
         if (isDead || hasReachedEnd) return // Cannot push back dead or finished enemies
 
-        Log.d("Enemy", "Applying pushback of $distance segments.")
+        //Log.d("Enemy-"${getType()}, "Applying pushback of $distance segments.") // Log type
         
         var distanceToPush = distance
         while(distanceToPush > 0 && currentPathIndex >= 0) {
@@ -284,6 +303,6 @@ abstract class Enemy(
         progressAlongSegment = max(0f, progressAlongSegment)
 
         updatePosition() // Update visual position immediately
-        Log.d("Enemy", "Pushed back to index $currentPathIndex, progress $progressAlongSegment")
+        //Log.d("Enemy-"${getType()}, "Pushed back to index $currentPathIndex, progress $progressAlongSegment") // Log type
     }
 } 

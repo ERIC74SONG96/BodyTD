@@ -42,6 +42,7 @@ import com.example.myapplicationbodytd.viewmodels.GameViewModel
 import com.example.myapplicationbodytd.viewmodels.GameViewModelFactory
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import com.example.myapplicationbodytd.game.effects.Effect
 
 //enum class TowerType { MUCUS, MACROPHAGE, COUGH } // Define if not already elsewhere
 
@@ -63,6 +64,7 @@ fun GameScreen(viewModelFactory: GameViewModelFactory) {
     val drawTick by gameViewModel.drawTick.collectAsState() 
     val isGameOver by gameViewModel.isGameOver.collectAsState() // Observe Game Over state
     val waveClearMessage by gameViewModel.waveClearMessage.collectAsState() // Observe message
+    val activeEffects = gameViewModel.activeEffects // Observe effects list
 
     val placementMode by gameViewModel.placementMode
     val selectedTowerType by gameViewModel.selectedTowerType
@@ -157,6 +159,7 @@ fun GameScreen(viewModelFactory: GameViewModelFactory) {
                     drawTowersInternal(towers, tileSize, offsetX, offsetY)
                     drawEnemiesInternal(enemies, tileSize, offsetX, offsetY)
                     drawAttackEffectsInternal(towers, offsetX, offsetY)
+                    drawEffectsInternal(activeEffects, offsetX, offsetY)
                 }
             }
 
@@ -408,6 +411,13 @@ private fun DrawScope.drawAttackEffectsInternal(towers: List<Tower>, offsetX: Fl
                 )
             }
         }
+    }
+}
+
+/** Draws all active visual effects. */
+private fun DrawScope.drawEffectsInternal(effects: List<Effect>, offsetX: Float, offsetY: Float) {
+    effects.forEach { effect ->
+        effect.draw(this, offsetX, offsetY)
     }
 }
 

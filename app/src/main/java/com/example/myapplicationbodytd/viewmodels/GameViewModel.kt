@@ -17,6 +17,7 @@ import com.example.myapplicationbodytd.ui.TowerType
 import kotlinx.coroutines.flow.StateFlow
 import com.example.myapplicationbodytd.game.factories.TowerFactory
 import com.example.myapplicationbodytd.game.states.InitializingState
+import com.example.myapplicationbodytd.game.effects.Effect
 
 /**
  * ViewModel for the main Game Screen.
@@ -42,6 +43,7 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
     // Expose SnapshotStateLists directly - Compose observes these
     val enemies: SnapshotStateList<Enemy> = gameManager.activeEnemies
     val towers: SnapshotStateList<Tower> = gameManager.placedTowers
+    val activeEffects: SnapshotStateList<Effect> = gameManager.activeEffects
 
     // --- UI-Specific State --- 
     private val _placementMode = mutableStateOf(false)
