@@ -1,0 +1,15 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/game/map/Map.kt</file>
+  <line>161</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.game.map</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.game.map.Map boolean canPlaceTowerAt(int x, int y)" />
+  <problem_class id="NullableBooleanElvis" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">Equality check can be used instead of elvis for nullable boolean check</problem_class>
+  <description>Equality check can be used instead of elvis for nullable boolean check</description>
+  <highlighted_element>?:</highlighted_element>
+  <language>kotlin</language>
+  <offset>37</offset>
+  <length>2</length>
+</problem>
+</problems>

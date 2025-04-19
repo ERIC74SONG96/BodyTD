@@ -1,0 +1,15 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml</file>
+  <line>8</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" />
+  <problem_class id="AndroidLintMissingClass" severity="ERROR" attribute_key="ERRORS_ATTRIBUTES">Missing registered class</problem_class>
+  <hints />
+  <description>&lt;html&gt;Class referenced in the layout file, &lt;code&gt;com.example.myapplicationbodytd.ui.GameView&lt;/code&gt;, was not found in the project or the libraries&lt;/html&gt;</description>
+  <highlighted_element>&lt;com.example.myapplicationbodytd.ui.GameView android:id=&quot;@+id/gameView&quot; android:layo...</highlighted_element>
+  <language>XML</language>
+  <offset>4</offset>
+  <length>171</length>
+</problem>
+</problems>

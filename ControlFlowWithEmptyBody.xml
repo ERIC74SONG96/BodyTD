@@ -1,0 +1,15 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/ui/GameScreen.kt</file>
+  <line>112</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.ui</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.ui.GameScreenKt void GameScreen(com.example.myapplicationbodytd.viewmodels.GameViewModelFactory viewModelFactory)" />
+  <problem_class id="ControlFlowWithEmptyBody" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Control flow with empty body</problem_class>
+  <description>'if' has empty body</description>
+  <highlighted_element>if</highlighted_element>
+  <language>kotlin</language>
+  <offset>16</offset>
+  <length>2</length>
+</problem>
+</problems>

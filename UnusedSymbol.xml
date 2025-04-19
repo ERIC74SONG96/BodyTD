@@ -1,0 +1,197 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/game/entities/Tower.kt</file>
+  <line>27</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.game.entities</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.game.entities.Tower Tower(int cost, float range, float attackRate, com.example.myapplicationbodytd.game.mechanics.strategies.AttackStrategy attackStrategy, kotlin.Pair&lt;java.lang.Integer,java.lang.Integer&gt; position, com.example.myapplicationbodytd.managers.GameManager gameManager, float baseDamage)" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Property &quot;cost&quot; is never used</description>
+  <highlighted_element>cost</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/game/entities/Tower.kt</file>
+  <line>141</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.game.entities</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.game.entities.Tower float calculateDistance(com.example.myapplicationbodytd.game.entities.Enemy enemy)" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;calculateDistance&quot; is never used</description>
+  <highlighted_element>calculateDistance</highlighted_element>
+  <language>kotlin</language>
+  <offset>18</offset>
+  <length>17</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/game/map/Map.kt</file>
+  <line>64</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.game.map</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.game.map.Map boolean setTileType(int x, int y, boolean isPath, boolean isPlaceable)" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;setTileType&quot; is never used</description>
+  <highlighted_element>setTileType</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>11</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/game/map/Map.kt</file>
+  <line>172</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.game.map</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.game.map.Map boolean setTileAsPlaceable(int x, int y)" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;setTileAsPlaceable&quot; is never used</description>
+  <highlighted_element>setTileAsPlaceable</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>18</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/game/map/Map.kt</file>
+  <line>187</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.game.map</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.game.map.Map java.util.List&lt;kotlin.Pair&lt;java.lang.Integer,java.lang.Integer&gt;&gt; getPlaceableTiles()" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;getPlaceableTiles&quot; is never used</description>
+  <highlighted_element>getPlaceableTiles</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>17</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/managers/GameManager.kt</file>
+  <line>59</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.managers</package>
+  <entry_point TYPE="field" FQNAME="com.example.myapplicationbodytd.managers.GameManager MAX_LIVES_LOST" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Property &quot;MAX_LIVES_LOST&quot; is never used</description>
+  <highlighted_element>MAX_LIVES_LOST</highlighted_element>
+  <language>kotlin</language>
+  <offset>14</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/managers/GameManager.kt</file>
+  <line>174</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.managers</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.managers.GameManager void stopGameLoop()" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;stopGameLoop&quot; is never used</description>
+  <highlighted_element>stopGameLoop</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>12</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/managers/GameManager.kt</file>
+  <line>179</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.managers</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.managers.GameManager void cleanup()" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;cleanup&quot; is never used</description>
+  <highlighted_element>cleanup</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/managers/WaveManager.kt</file>
+  <line>85</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.managers</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.managers.WaveManager void startWave(int waveNumber, com.example.myapplicationbodytd.managers.GameManager gameManager, java.util.List&lt;kotlin.Pair&lt;java.lang.Integer,java.lang.Integer&gt;&gt; path)" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;startWave&quot; is never used</description>
+  <highlighted_element>startWave</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>9</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/managers/WaveManager.kt</file>
+  <line>171</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.managers</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.managers.WaveManager com.example.myapplicationbodytd.managers.WaveManager.WaveStatus getCurrentWaveStatus()" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;getCurrentWaveStatus&quot; is never used</description>
+  <highlighted_element>getCurrentWaveStatus</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>20</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/managers/WaveManager.kt</file>
+  <line>172</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.managers</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.managers.WaveManager int getCurrentWaveNumber()" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;getCurrentWaveNumber&quot; is never used</description>
+  <highlighted_element>getCurrentWaveNumber</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>20</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/ui/GameScreen.kt</file>
+  <line>36</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.ui</package>
+  <entry_point TYPE="field" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/ui/GameScreen.kt MAX_CANVAS_SIZE_DP" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Property &quot;MAX_CANVAS_SIZE_DP&quot; is never used</description>
+  <highlighted_element>MAX_CANVAS_SIZE_DP</highlighted_element>
+  <language>kotlin</language>
+  <offset>10</offset>
+  <length>18</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/ui/GameScreen.kt</file>
+  <line>343</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.ui</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.ui.GameScreenKt int getTowerCost(com.example.myapplicationbodytd.ui.TowerType towerType)" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;getTowerCost&quot; is never used</description>
+  <highlighted_element>getTowerCost</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>12</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/ui/HUD.kt</file>
+  <line>39</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.ui</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.ui.HUDKt void HUD(androidx.compose.ui.Modifier modifier, int currency, int lives, int wave)" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Function &quot;HUD&quot; is never used</description>
+  <highlighted_element>HUD</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/util/Constants.kt</file>
+  <line>6</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.util</package>
+  <entry_point TYPE="class" FQNAME="com.example.myapplicationbodytd.util.Constants" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Object &quot;Constants&quot; is never used</description>
+  <highlighted_element>Constants</highlighted_element>
+  <language>kotlin</language>
+  <offset>7</offset>
+  <length>9</length>
+</problem>
+</problems>

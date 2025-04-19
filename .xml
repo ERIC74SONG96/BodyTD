@@ -1,0 +1,138 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/androidTest/java/com/example/myapplicationbodytd/ExampleInstrumentedTest.kt</file>
+  <line>11</line>
+  <module>My_Application_BodyTD.app.androidTest</module>
+  <package>com.example.myapplicationbodytd</package>
+  <entry_point TYPE="class" FQNAME="com.example.myapplicationbodytd.ExampleInstrumentedTest" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is not instantiated.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/androidTest/java/com/example/myapplicationbodytd/ExampleInstrumentedTest.kt</file>
+  <line>18</line>
+  <module>My_Application_BodyTD.app.androidTest</module>
+  <package>com.example.myapplicationbodytd</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.ExampleInstrumentedTest void useAppContext()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>5</length>
+  <highlighted_element>@Test</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/MainActivity.kt</file>
+  <line>18</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd</package>
+  <entry_point TYPE="class" FQNAME="com.example.myapplicationbodytd.MainActivity" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>42</length>
+  <highlighted_element>class MainActivity : ComponentActivity() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is not instantiated.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/ui/GameCanvas.kt</file>
+  <line>296</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.ui</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.ui.GameCanvasKt void GameCanvasPreview()" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>62</length>
+  <highlighted_element>@Preview(showBackground = true, widthDp = 360, heightDp = 240)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/ui/HUD.kt</file>
+  <line>92</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.ui</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.ui.HUDKt void HUDPreview()" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>31</length>
+  <highlighted_element>@Preview(showBackground = true)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/example/myapplicationbodytd/ui/TowerSelectionPanel.kt</file>
+  <line>120</line>
+  <module>My_Application_BodyTD.app.main</module>
+  <package>com.example.myapplicationbodytd.ui</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.ui.TowerSelectionPanelKt void TowerSelectionPanelPreview()" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>31</length>
+  <highlighted_element>@Preview(showBackground = true)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/test/java/com/example/myapplicationbodytd/ExampleUnitTest.kt</file>
+  <line>7</line>
+  <module>My_Application_BodyTD.app.unitTest</module>
+  <package>com.example.myapplicationbodytd</package>
+  <entry_point TYPE="class" FQNAME="com.example.myapplicationbodytd.ExampleUnitTest" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is not instantiated.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/test/java/com/example/myapplicationbodytd/ExampleUnitTest.kt</file>
+  <line>13</line>
+  <module>My_Application_BodyTD.app.unitTest</module>
+  <package>com.example.myapplicationbodytd</package>
+  <entry_point TYPE="method" FQNAME="com.example.myapplicationbodytd.ExampleUnitTest void addition_isCorrect()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>5</length>
+  <highlighted_element>@Test</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+</problems>
