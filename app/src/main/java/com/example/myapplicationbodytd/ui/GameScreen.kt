@@ -31,7 +31,6 @@ import com.example.myapplicationbodytd.game.map.Map
 import com.example.myapplicationbodytd.util.Constants
 import com.example.myapplicationbodytd.util.CoordinateConverter
 import com.example.myapplicationbodytd.game.states.GameState
-//import com.example.myapplicationbodytd.game.map.TileType
 import com.example.myapplicationbodytd.R
 import androidx.compose.runtime.collectAsState
 import com.example.myapplicationbodytd.game.entities.Bacteria
@@ -41,9 +40,6 @@ import com.example.myapplicationbodytd.game.entities.CoughTower
 import com.example.myapplicationbodytd.game.entities.MacrophageTower
 import com.example.myapplicationbodytd.game.entities.MucusTower
 import androidx.compose.ui.graphics.StrokeCap
-
-// TODO: Define these properly, maybe in a constants file
-const val GRID_SIZE = 15 // Example: 10x10 grid
 
 //enum class TowerType { MUCUS, MACROPHAGE, COUGH } // Define if not already elsewhere
 
@@ -99,7 +95,7 @@ fun GameScreen(viewModelFactory: GameViewModelFactory) {
         )
 
         // Game Area (Canvas)
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .weight(1f) // Takes up remaining space
                 .padding(8.dp)

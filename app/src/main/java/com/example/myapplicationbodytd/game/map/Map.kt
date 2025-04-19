@@ -136,7 +136,7 @@ class Map(
      */
     fun canPlaceTowerAt(x: Int, y: Int): Boolean {
         val tile = getTileAt(x, y)
-        return tile?.canPlaceTower() ?: false
+        return tile?.canPlaceTower() == true
     }
 
     /**
