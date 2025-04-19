@@ -14,8 +14,8 @@ class InitializingState(gameManager: GameManager) : GameState(gameManager) {
         // TODO: Clear existing enemies/towers from previous game if any
         // TODO: Load map
         
-        Log.d("GameState", "Initialization complete. Transitioning to WaveStarting...")
-        gameManager.changeState(WaveStartingState(gameManager))
+        Log.d("GameState", "Initialization complete. Transitioning to WaveClearedState (ready for Wave 1)...")
+        gameManager.changeState(WaveClearedState(gameManager))
     }
 
     override fun update(deltaTime: Float) {

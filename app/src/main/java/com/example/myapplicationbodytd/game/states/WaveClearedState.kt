@@ -2,51 +2,25 @@ package com.example.myapplicationbodytd.game.states
 
 import android.util.Log
 import com.example.myapplicationbodytd.managers.GameManager
-import kotlinx.coroutines.*
 
+/**
+ * Represents the state between waves, where the player can prepare and initiate the next wave.
+ */
 class WaveClearedState(gameManager: GameManager) : GameState(gameManager) {
 
-    private val scope = CoroutineScope(Dispatchers.Main + Job())
-    private var transitionJob: Job? = null
-    private var timer: Float = 3.0f // Time before starting next wave
-
     override fun enter() {
-        // Use StateFlow value for consistency
-        Log.d("GameState", "Entering WaveCleared State after Wave ${gameManager.currentWave.value}")
-        // TODO: Display wave cleared UI
-        // TODO: Provide button to start next wave immediately?
-
-        // Start a coroutine to wait briefly before transitioning
-        transitionJob = scope.launch {
-            delay(2000) // Wait 2 seconds before next wave or win screen
-
-            if (gameManager.currentWave.value >= GameManager.MAX_WAVES) {
-                Log.d("GameState", "Max waves reached. Transitioning to WonState.")
-                gameManager.changeState(WonState(gameManager))
-            } else {
-                Log.d("GameState", "Timer elapsed. Transitioning to WaveStartingState for next wave.")
-                gameManager.changeState(WaveStartingState(gameManager))
-            }
-        }
+        val nextWave = gameManager.currentWave.value + 1
+        Log.i("GameState", "Entering WaveCleared State. Ready for Wave $nextWave")
+        // TODO: Update UI to show "Wave Cleared! Ready for Wave X" and enable Start Wave button
     }
 
     override fun update(deltaTime: Float) {
-        timer -= deltaTime
-        if (timer <= 0f) {
-            // Check if max waves reached before attempting to start next
-            if (gameManager.currentWave.value >= GameManager.MAX_WAVES) {
-                Log.d("GameState", "Max waves reached. Transitioning to WonState.")
-                gameManager.changeState(WonState(gameManager))
-            } else {
-                Log.d("GameState", "Timer elapsed. Transitioning to WaveStartingState for next wave.")
-                gameManager.changeState(WaveStartingState(gameManager))
-            }
-        }
+        // Do nothing in update. Waiting for user input via the UI button.
+        // The UI button click will call GameManager.requestNextWave()
     }
 
     override fun exit() {
         Log.d("GameState", "Exiting WaveCleared State")
-        transitionJob?.cancel() // Cancel transition if state is exited prematurely
-        // TODO: Hide wave cleared UI
+        // TODO: Hide any "Wave Cleared" UI elements if necessary
     }
 } 

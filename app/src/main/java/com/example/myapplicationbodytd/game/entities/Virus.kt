@@ -7,7 +7,7 @@ class Virus(
     gameManager: GameManager
 ) : Enemy(
     initialHealth = 50f,
-    speed = 3.0f,
+    speed = 1.5f,
     reward = 10,
     path = path,
     gameManager = gameManager

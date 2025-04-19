@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import com.example.myapplicationbodytd.game.mechanics.strategies.AttackStrategy
 import com.example.myapplicationbodytd.managers.GameManager
 import com.example.myapplicationbodytd.managers.Updatable
+import com.example.myapplicationbodytd.util.CoordinateConverter
 import kotlin.math.pow
 import kotlin.math.sqrt
 import android.util.Log
@@ -36,9 +37,13 @@ abstract class Tower(
     protected var cooldownTimer: Float = 0f // Time remaining until next attack
     protected val attackCooldown: Float = 1.0f / attackRate
 
-    // Convert grid position to world position (assuming simple scaling for now)
-    // TODO: Use a centralized grid-to-world conversion utility
-    val worldPosition: Offset = Offset(position.first.toFloat() * 50f + 25f, position.second.toFloat() * 50f + 25f)
+    // Convert grid position to world position using the centralized converter
+    // Pass the current cell size from GameManager
+    val worldPosition: Offset = CoordinateConverter.gridToWorld(
+        position.first, 
+        position.second, 
+        gameManager.currentCellSize
+    )
 
     var currentTarget: Enemy? = null
         protected set

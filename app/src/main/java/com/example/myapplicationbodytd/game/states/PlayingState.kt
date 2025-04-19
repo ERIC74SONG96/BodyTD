@@ -8,42 +8,42 @@ class PlayingState(gameManager: GameManager) : GameState(gameManager) {
 
     override fun enter() {
         // Use StateFlow value for logging consistency
-        Log.d("GameState", "Entering Playing State for Wave ${gameManager.currentWave.value}")
-        // TODO: Enable player interactions (tower placement, etc.)
-        // Assume WaveManager.startWave was called before transitioning here?
-        // Need clarification on when startWave is called relative to state entry.
-        // gameManager.startNextWave() // Should this be called here or elsewhere?
+        val wave = gameManager.currentWave.value
+        Log.i("GameState", "Entering Playing State for Wave $wave")
+
+        // Start the wave spawning logic in WaveManager
+        WaveManager.startWave(wave, gameManager, gameManager.gameMap.path)
+        
+        // TODO: Enable player interactions specific to active gameplay if needed
     }
 
     override fun update(deltaTime: Float) {
-        // Call WaveManager update to handle spawning
-        // TODO: Need access to the current map path from MapManager or similar
-        val currentPath = emptyList<Pair<Int, Int>>() // Placeholder
-        WaveManager.update(deltaTime, gameManager, currentPath)
+        // Call WaveManager update first to handle spawning for this frame
+        WaveManager.update(deltaTime, gameManager, gameManager.gameMap.path)
 
         // Check for loss condition using StateFlow value
         if (gameManager.lives.value <= 0) {
-            Log.d("GameState", "Loss condition met (lives <= 0). Transitioning to LostState.")
+            Log.w("GameState", "Loss condition met (lives <= 0). Transitioning to LostState.")
             gameManager.changeState(LostState(gameManager))
             return // Exit update early if game is lost
         }
 
         // Check for wave completion by polling WaveManager
         if (WaveManager.checkWaveCompletion()) {
-             // Check win condition using StateFlow value
-            if (gameManager.currentWave.value >= GameManager.MAX_WAVES) {
-                Log.d("GameState", "Final wave cleared. Transitioning to WonState.")
+             val currentWave = gameManager.currentWave.value
+             // Check if the completed wave was the final one
+            if (currentWave >= GameManager.MAX_WAVES) {
+                Log.i("GameState", "Final wave ($currentWave) cleared. Transitioning to WonState.")
                 gameManager.changeState(WonState(gameManager))
             } else {
-                // Use StateFlow value for logging consistency
-                Log.d("GameState", "Wave ${gameManager.currentWave.value} cleared. Transitioning to WaveClearedState.")
-                // TODO: Implement WaveClearedState if it's needed (e.g., for between-wave UI/pauses)
+                // Wave cleared, but not the last one. Go back to waiting state.
+                Log.i("GameState", "Wave $currentWave cleared. Transitioning to WaveClearedState.")
                 gameManager.changeState(WaveClearedState(gameManager))
             }
             return // Exit update early after state change
         }
 
-        // Other playing state logic (e.g., handling player input if not done via UI direct calls)
+        // Other playing state logic (e.g., enemy movement, tower attacks are handled by their own update methods)
     }
 
     override fun exit() {
@@ -51,12 +51,4 @@ class PlayingState(gameManager: GameManager) : GameState(gameManager) {
         Log.d("GameState", "Exiting Playing State for Wave ${gameManager.currentWave.value}")
         // TODO: Disable player interactions if necessary
     }
-
-    // Added method suggested by GameManager.startNextWave call
-     fun startWave(waveNumber: Int) {
-         Log.d("PlayingState", "Received instruction to start wave $waveNumber")
-         // TODO: Implement logic needed when a wave explicitly starts within this state
-         // e.g., trigger WaveManager to begin spawning for this wave number.
-         // WaveManager.startSpawningForWave(waveNumber) // Example call
-     }
 } 

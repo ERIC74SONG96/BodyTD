@@ -22,6 +22,7 @@ import kotlinx.coroutines.CancellationException
 import com.example.myapplicationbodytd.managers.WaveManager
 import com.example.myapplicationbodytd.game.states.GameState // Import GameState
 import kotlinx.coroutines.flow.StateFlow // Import StateFlow
+import com.example.myapplicationbodytd.game.states.WaveClearedState // Import specific state
 
 /**
  * ViewModel for the main Game Screen.
@@ -53,6 +54,9 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
 
     private val _wave = mutableIntStateOf(0)
     val wave: State<Int> = _wave
+
+    private val _currentGameState = mutableStateOf<GameState?>(null)
+    val currentGameState: State<GameState?> = _currentGameState
 
     // --- Placement State ---
     private val _placementMode = mutableStateOf(false)
@@ -112,8 +116,10 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
         }
         viewModelScope.launch {
             try {
-                gameManager.gameState.onEach { Log.d("GameViewModel", "Observed gameState: ${it?.javaClass?.simpleName}") }.collect { state ->
-                    // Optionally update a ViewModel state specific to the game phase
+                gameManager.gameState.onEach { 
+                    Log.d("GameViewModel", "Observed gameState: ${it?.javaClass?.simpleName}") 
+                }.collect { state ->
+                    _currentGameState.value = state // Update the exposed state
                 }
             } catch (e: CancellationException) {
                 Log.d("GameViewModel", "GameState collection cancelled.")
@@ -146,6 +152,10 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
         // TODO: Add Map StateFlow collection if/when GameManager exposes it dynamically
         // For now, map is assumed static after init
     }
+
+    // --- Helper to check if Start Wave button should be enabled ---
+    val canStartNextWave: Boolean
+        get() = _currentGameState.value is WaveClearedState
 
     // --- Placement Actions ---
     fun enterPlacementMode(towerType: TowerType) {
@@ -250,6 +260,24 @@ class GameViewModel(private val gameManager: GameManager) : ViewModel() {
 
     // TODO: Add functions to update currency from enemy defeats (called by GameManager)
 
+    // --- Game Actions ---
+    fun requestNextWave() {
+        Log.d("GameViewModel", "Requesting GameManager to start the next wave.")
+        gameManager.requestNextWave()
+    }
+
+    // --- Configuration Updates ---
+    fun updateCellSize(newSize: Float) {
+        // Relay the cell size update to the GameManager
+        gameManager.updateCellSize(newSize)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("GameViewModel", "GameViewModel is being cleared.")
+        // No need to explicitly cancel gameManager's scope here, as GameManager is a singleton
+        // But if GameManager's lifecycle were tied to ViewModel, you'd cancel its scope here.
+    }
 }
 
 // Dummy TowerType for compilation if not already defined elsewhere

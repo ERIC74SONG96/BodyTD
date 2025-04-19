@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
 import com.example.myapplicationbodytd.managers.GameManager
 import com.example.myapplicationbodytd.managers.Updatable
+import com.example.myapplicationbodytd.util.CoordinateConverter
 import kotlin.math.max
 import android.util.Log
 
@@ -68,20 +69,21 @@ abstract class Enemy(
      * Uses linear interpolation between the current and next path nodes.
      */
     protected fun updatePosition() {
+        // Get the current tile size from GameManager
+        val tileSize = gameManager.currentCellSize
+
         if (currentPathIndex >= path.size - 1) {
             // If at or beyond the last node, stay at the last node's position
             val endNode = path.last()
-            // TODO: Convert grid coords to world coords properly
-            position = Offset(endNode.first.toFloat() * 50f, endNode.second.toFloat() * 50f)
+            position = CoordinateConverter.gridToWorld(endNode.first, endNode.second, tileSize)
             return
         }
 
         val startNodeCoords = path[currentPathIndex]
         val endNodeCoords = path[currentPathIndex + 1]
 
-        // TODO: Convert grid coords to world coords properly
-        val startPos = Offset(startNodeCoords.first.toFloat() * 50f, startNodeCoords.second.toFloat() * 50f)
-        val endPos = Offset(endNodeCoords.first.toFloat() * 50f, endNodeCoords.second.toFloat() * 50f)
+        val startPos = CoordinateConverter.gridToWorld(startNodeCoords.first, startNodeCoords.second, tileSize)
+        val endPos = CoordinateConverter.gridToWorld(endNodeCoords.first, endNodeCoords.second, tileSize)
 
         // Linearly interpolate between the start and end points of the current segment
         position = lerp(startPos, endPos, progressAlongSegment)

@@ -1,28 +1,27 @@
 package com.example.myapplicationbodytd.ui
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.graphics.StrokeCap
-import com.example.myapplicationbodytd.game.entities.Bacteria
-import com.example.myapplicationbodytd.game.entities.Enemy
-import com.example.myapplicationbodytd.game.entities.FineParticle
-import com.example.myapplicationbodytd.game.entities.Virus
-import com.example.myapplicationbodytd.game.map.Map // Assuming Map provides grid<->world conversion eventually
-import com.example.myapplicationbodytd.game.entities.* // Import all entities
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import android.util.Log // Import Log
 import androidx.compose.ui.input.pointer.pointerInput
-import com.example.myapplicationbodytd.game.map.TileInfo // Import TileInfo
-import com.example.myapplicationbodytd.ui.TowerType // Import the correct UI TowerType
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.myapplicationbodytd.game.entities.*
+import com.example.myapplicationbodytd.game.map.Map
+import com.example.myapplicationbodytd.util.CoordinateConverter
 
 // Colors for different tile types
 val pathColor = Color(0xFFC19A6B) // Tan/Brownish
@@ -39,6 +38,7 @@ val nonPlaceableHighlightColor = Color.Red.copy(alpha = 0.3f)
  * @param placementMode Whether the game is currently in tower placement mode.
  * @param selectedTowerType The type of tower selected for placement (if in placement mode).
  * @param onTileTap Callback function when a grid tile is tapped.
+ * @param onCellSizeCalculated Callback function when the cell size is calculated.
  */
 @Composable
 fun GameCanvas(
@@ -48,9 +48,13 @@ fun GameCanvas(
     towers: List<Tower>,
     placementMode: Boolean,
     selectedTowerType: TowerType?,
-    onTileTap: (x: Int, y: Int) -> Unit // Add callback
+    onTileTap: (x: Int, y: Int) -> Unit, // Existing callback
+    onCellSizeCalculated: (Float) -> Unit // New callback for cell size
 ) {
     Log.d("GameCanvas", "Recomposing GameCanvas")
+
+    // Keep track of the last reported cell size to avoid redundant calls
+    var lastReportedCellSize by remember { mutableFloatStateOf(0f) }
 
     Canvas(
         modifier = modifier
@@ -70,13 +74,18 @@ fun GameCanvas(
                     val offsetX = (canvasWidth - totalGridWidth) / 2f
                     val offsetY = (canvasHeight - totalGridHeight) / 2f
 
-                    // Convert tap offset to grid coordinates
-                    val gridX = ((tapOffset.x - offsetX) / tileSize).toInt()
-                    val gridY = ((tapOffset.y - offsetY) / tileSize).toInt()
+                    // Convert tap coordinates to grid coordinates using the converter
+                    val gridCoords = CoordinateConverter.worldToGrid(
+                        tapOffset.x,
+                        tapOffset.y,
+                        tileSize,
+                        offsetX,
+                        offsetY
+                    )
 
                     // Ensure coordinates are within grid bounds before calling callback
-                    if (gridX in 0 until map.width && gridY in 0 until map.height) {
-                        onTileTap(gridX, gridY)
+                    if (gridCoords.first in 0 until map.width && gridCoords.second in 0 until map.height) {
+                        onTileTap(gridCoords.first, gridCoords.second)
                     }
                 }
             }
@@ -87,7 +96,6 @@ fun GameCanvas(
         // Calculate tile size based on canvas dimensions and map grid
         val tileSizeWidth = canvasWidth / map.width
         val tileSizeHeight = canvasHeight / map.height
-        // Use the smaller dimension to ensure tiles fit and maintain aspect ratio (square tiles)
         val tileSize = minOf(tileSizeWidth, tileSizeHeight)
 
         // Calculate offsets to center the grid if it doesn't fill the canvas perfectly
@@ -95,6 +103,12 @@ fun GameCanvas(
         val totalGridHeight = tileSize * map.height
         val offsetX = (canvasWidth - totalGridWidth) / 2f
         val offsetY = (canvasHeight - totalGridHeight) / 2f
+
+        // Report cell size change if it's valid and different from last time
+        if (tileSize > 0f && tileSize != lastReportedCellSize) {
+            onCellSizeCalculated(tileSize)
+            lastReportedCellSize = tileSize
+        }
 
         drawGrid(map, tileSize, offsetX, offsetY)
 
@@ -145,11 +159,11 @@ private fun DrawScope.drawEnemies(enemies: List<Enemy>, tileSize: Float, offsetX
     enemies.forEach { enemy ->
         if (enemy.isDead) return@forEach // Don't draw dead enemies
 
-        // TODO: Use a proper world coordinate system from Enemy or Map
-        // For now, assume enemy.position is already scaled world coords (as implemented in Enemy.updatePosition)
-        val worldX = enemy.position.x + offsetX // Adjust for canvas centering
-        val worldY = enemy.position.y + offsetY
-        val center = Offset(worldX, worldY)
+        // Use the enemy's world position directly. It's already calculated correctly.
+        // Do NOT add offsetX/offsetY here, as enemy position is relative to world (0,0),
+        // not the centered canvas grid origin.
+        // The centering offset is handled by the placement of the Canvas itself.
+        val center = enemy.position 
 
         // Determine color based on enemy type
         val enemyColor = when (enemy) {
@@ -307,7 +321,8 @@ fun GameCanvasPreview() {
             towers = previewTowers,
             placementMode = true,
             selectedTowerType = TowerType.MUCUS,
-            onTileTap = { x, y -> Log.d("Preview", "Tapped tile: ($x, $y)") } // Example callback
+            onTileTap = { x, y -> Log.d("Preview", "Tapped tile: ($x, $y)") }, // Example callback
+            onCellSizeCalculated = { cellSize -> Log.d("Preview", "Cell size: $cellSize") } // Example callback for cell size
         )
     }
 }

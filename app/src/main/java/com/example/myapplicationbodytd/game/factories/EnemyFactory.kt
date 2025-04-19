@@ -48,10 +48,12 @@ object EnemyFactory {
     enum class EnemyType { VIRUS, BACTERIA, FINE_PARTICLE }
 
     fun createEnemy(type: EnemyType, path: List<Pair<Int, Int>>, gameManager: GameManager): Enemy {
-        return when (type) {
-            EnemyType.VIRUS -> createVirus(path, gameManager)
-            EnemyType.BACTERIA -> createBacteria(path, gameManager)
-            EnemyType.FINE_PARTICLE -> createFineParticle(path, gameManager)
+        val enemy = when (type) {
+            EnemyType.VIRUS -> Virus(path = path, gameManager = gameManager)
+            EnemyType.BACTERIA -> Bacteria(path = path, gameManager = gameManager)
+            EnemyType.FINE_PARTICLE -> FineParticle(path = path, gameManager = gameManager)
         }
+        gameManager.registerGameObject(enemy)
+        return enemy
     }
 } 

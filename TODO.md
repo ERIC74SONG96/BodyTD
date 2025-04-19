@@ -12,9 +12,7 @@ This list tracks items marked with `// TODO:` in the codebase.
 - [ ] Use the `cost` property of the `Tower` class (e.g., for UI display, purchase logic).
 - [ ] Consider thread safety if `registerGameObject` is called from multiple threads (`GameManager.kt`, line 92)
 - [ ] Consider thread safety if `unregisterGameObject` is called from multiple threads (`GameManager.kt`, line 102)
-- [ ] Tell WaveManager to start spawning for currentWave (`GameManager.kt`, line 224)
 - [ ] Add checks for existing towers at (x, y) in `GameManager.canPlaceTowerAt` (`GameManager.kt`, line 230)
 - [ ] Define `GRID_SIZE` properly, maybe in a constants file (`GameScreen.kt`, line 34)
 - [ ] Improve placement indicator - maybe draw a semi-transparent tower? (`GameScreen.kt`, line 108)
 - [ ] Verify how enemy.position relates to world/canvas coordinates (`GameScreen.kt`, line 187)
-- [ ] Differentiate enemy types visually in `GameScreen.drawEnemies` (`GameScreen.kt`, line 194) 

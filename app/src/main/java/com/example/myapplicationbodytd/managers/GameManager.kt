@@ -16,6 +16,9 @@ import com.example.myapplicationbodytd.game.states.LostState
 import com.example.myapplicationbodytd.game.states.PlayingState
 import com.example.myapplicationbodytd.game.states.WonState
 import com.example.myapplicationbodytd.managers.EconomyManager
+import com.example.myapplicationbodytd.util.CoordinateConverter
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Interface for game objects that need periodic updates.
@@ -46,9 +49,15 @@ interface Updatable {
 object GameManager {
     val gameMap = Map()
 
+    // Lock for synchronizing access to game objects and state flows
+    private val gameObjectsLock = ReentrantLock()
     private val gameObjects = mutableListOf<Updatable>()
     private val scope = CoroutineScope(Dispatchers.Default + Job())
     private var gameLoopJob: Job? = null
+
+    // Cell size for coordinate conversions (updated by UI)
+    var currentCellSize: Float = CoordinateConverter.DEFAULT_TILE_SIZE // Initialize with default
+        private set
 
     // Target update rate (e.g., 60 updates per second)
     private const val TARGET_UPDATES_PER_SECOND = 60
@@ -85,26 +94,34 @@ object GameManager {
         startGameLoop()
     }
 
+    /**
+     * Thread-safe registration of game objects.
+     * Uses ReentrantLock to synchronize access to shared collections and state flows.
+     */
     fun registerGameObject(obj: Updatable) {
-        // TODO: Consider thread safety if called from multiple threads
-        if (!gameObjects.contains(obj)) {
-            gameObjects.add(obj)
-            when (obj) {
-                is Enemy -> _activeEnemies.update { list -> list + obj }
-                is Tower -> _placedTowers.update { list -> list + obj }
-                // Add other types if needed
+        gameObjectsLock.withLock {
+            if (!gameObjects.contains(obj)) {
+                gameObjects.add(obj)
+                when (obj) {
+                    is Enemy -> _activeEnemies.update { list -> list + obj }
+                    is Tower -> _placedTowers.update { list -> list + obj }
+                }
             }
         }
     }
 
+    /**
+     * Thread-safe unregistration of game objects.
+     * Uses ReentrantLock to synchronize access to shared collections and state flows.
+     */
     fun unregisterGameObject(obj: Updatable) {
-        // TODO: Consider thread safety if called from multiple threads
-        if (gameObjects.remove(obj)) {
-             when (obj) {
-                 is Enemy -> _activeEnemies.update { list -> list - obj }
-                 is Tower -> _placedTowers.update { list -> list - obj }
-                 // Add other types if needed
-             }
+        gameObjectsLock.withLock {
+            if (gameObjects.remove(obj)) {
+                when (obj) {
+                    is Enemy -> _activeEnemies.update { list -> list - obj }
+                    is Tower -> _placedTowers.update { list -> list - obj }
+                }
+            }
         }
     }
 
@@ -213,21 +230,37 @@ object GameManager {
         return false
     }
 
-    fun startNextWave() {
-        _currentWave.update { it + 1 }
-        Log.d("GameManager", "Starting Wave ${_currentWave.value}")
-        // TODO: Tell WaveManager to start spawning for currentWave (Task 8 logic still needed)
-        if (_gameState.value is PlayingState) {
-             (_gameState.value as PlayingState).startWave(_currentWave.value)
-        } else {
-            Log.w("GameManager", "Tried to start next wave, but not in PlayingState.")
+    /**
+     * Called by the UI (via ViewModel) or state machine to initiate the next wave.
+     * It increments the wave counter (if valid) and transitions to the PlayingState.
+     * The actual wave spawning logic is triggered within PlayingState.enter().
+     */
+    fun requestNextWave() {
+        if (_currentWave.value >= MAX_WAVES) {
+            Log.w("GameManager", "Requested next wave, but already completed max waves ($MAX_WAVES).")
+            // Optional: Could transition to WonState here if not already handled by PlayingState
+            return
         }
+
+        val nextWave = _currentWave.value + 1
+        Log.i("GameManager", "Request received to start Wave $nextWave.")
+        _currentWave.update { nextWave }
+        
+        // Transition to PlayingState. PlayingState.enter() will handle calling WaveManager.
+        changeState(PlayingState(this))
     }
 
     // --- Map Interaction ---
     fun canPlaceTowerAt(x: Int, y: Int): Boolean {
-        // TODO: Add checks for existing towers at (x, y) if needed
-        return gameMap.canPlaceTowerAt(x, y)
+        // First check if the map tile allows tower placement
+        if (!gameMap.canPlaceTowerAt(x, y)) {
+            return false
+        }
+
+        // Then check if there's already a tower at this location
+        // Use the synchronized list of placed towers from the StateFlow
+        val existingTowers = _placedTowers.value
+        return !existingTowers.any { it.position == Pair(x, y) }
     }
     // ---------------------
 
@@ -236,4 +269,13 @@ object GameManager {
     // fun getCurrentWave(): Int = _currentWave.value // No longer needed
     // fun getEnemies(): List<Enemy> = _activeEnemies.value // No longer needed, observe StateFlow
     // fun getTowers(): List<Tower> = _placedTowers.value // No longer needed, observe StateFlow
+
+    // --- Configuration ---
+    fun updateCellSize(newSize: Float) {
+        if (newSize > 0f) {
+            currentCellSize = newSize
+            // Optionally log or notify other systems if needed
+            // Log.d("GameManager", "Cell size updated to $newSize")
+        }
+    }
 }
