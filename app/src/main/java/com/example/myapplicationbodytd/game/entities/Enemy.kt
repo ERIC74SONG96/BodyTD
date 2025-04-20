@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import com.example.myapplicationbodytd.game.effects.FadeEffect
 import com.example.myapplicationbodytd.game.effects.HitEffect
 import com.example.myapplicationbodytd.util.Constants
+import com.example.myapplicationbodytd.managers.SoundManager
 
 /**
  * **Inheritance:** Base class for all enemy types.
@@ -217,11 +218,11 @@ abstract class Enemy(
      * @param amount The amount of damage to inflict.
      */
     open fun takeDamage(amount: Float) {
-        if (isDead) return // Already dead
-
+        if (isDead) return
         health -= amount
-        Log.d("Enemy", "Took $amount damage, health remaining: $health")
-
+        // Trigger hit sound immediately when damage is taken
+        SoundManager.playSound(SoundManager.SoundType.ENEMY_HIT)
+        // Log.d("Enemy", "Took $amount damage, health remaining: $health") // Optional: Keep for debugging
         if (isDead) {
             onDeath()
         }
@@ -232,15 +233,10 @@ abstract class Enemy(
      * Creates a death effect, notifies GameManager, and unregisters.
      */
     protected open fun onDeath() {
-        //Log.d("Enemy-"${getType()}, "Died!") // Log type
-        
-        // Create death effect before unregistering
+        //Log.d("Enemy-"${getType()}, "Died!")
         gameManager.addEffect(FadeEffect(position, enemyColor, enemyRadius))
-        
-        // Notify GameManager about the death (for score/currency)
+        SoundManager.playSound(SoundManager.SoundType.ENEMY_DEATH) // Play death sound
         gameManager.enemyDestroyed(this)
-
-        // Unregister from game updates AFTER creating effect and notifying
         gameManager.unregisterGameObject(this)
     }
 
@@ -249,7 +245,8 @@ abstract class Enemy(
      * Handles cleanup and notifies the GameManager.
      */
     protected open fun onReachEnd() {
-        //Log.d("Enemy-"${getType()}, "Reached end of path!") // Log type
+        //Log.d("Enemy-"${getType()}, "Reached end of path!")
+        // SoundManager.playSound(SoundManager.SoundType.ENEMY_REACHED_END) // Removed: Handled by GameManager
         gameManager.enemyReachedEnd(this)
         gameManager.unregisterGameObject(this)
         health = 0f // Mark as inactive
@@ -264,7 +261,7 @@ abstract class Enemy(
 
     /**
      * Virtual method called when the enemy is hit by an attack (before damage calculation).
-     * Creates a HitEffect.
+     * Creates a HitEffect. (Hit sound is played in takeDamage)
      */
     open fun onHit() {
         gameManager.addEffect(HitEffect(position, enemyRadius))

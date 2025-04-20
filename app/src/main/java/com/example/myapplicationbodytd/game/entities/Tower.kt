@@ -10,6 +10,7 @@ import kotlin.math.sqrt
 import android.util.Log
 import androidx.compose.runtime.Stable
 import com.example.myapplicationbodytd.util.Constants
+import com.example.myapplicationbodytd.managers.SoundManager
 
 /**
  * **Inheritance:** Abstract base class for all defensive towers.
@@ -128,6 +129,7 @@ abstract class Tower(
         currentTarget = targetEnemy // Set current target for visual effect
         attackEffectTimer = attackEffectDuration // Start timer for visual effect
         attackStrategy.execute(targetEnemy, this)
+        SoundManager.playSound(SoundManager.SoundType.TOWER_FIRE)
     }
 
     /**

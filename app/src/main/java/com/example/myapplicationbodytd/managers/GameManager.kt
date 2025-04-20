@@ -25,6 +25,10 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.time.TimeSource
 import com.example.myapplicationbodytd.game.effects.Effect
+import com.example.myapplicationbodytd.game.states.LostState
+import com.example.myapplicationbodytd.game.states.WaveClearedState
+import com.example.myapplicationbodytd.game.states.WonState
+import com.example.myapplicationbodytd.managers.SoundManager
 
 /**
  * Interface for game objects that need periodic updates.
@@ -152,6 +156,22 @@ object GameManager {
             oldState?.exit() // Call exit on the old state
             _gameState.value = newState // Update the StateFlow
             newState.enter() // Call enter on the new state
+
+            // Play sounds based on the new state
+            when (newState) {
+                is PlayingState -> SoundManager.playSound(SoundManager.SoundType.WAVE_START)
+                is WaveClearedState -> SoundManager.playSound(SoundManager.SoundType.WAVE_CLEARED)
+                is WonState -> {
+                    SoundManager.playSound(SoundManager.SoundType.GAME_WIN)
+                    SoundManager.stopBackgroundMusic() // Stop music on win
+                }
+                is LostState -> {
+                    SoundManager.playSound(SoundManager.SoundType.GAME_LOSE)
+                    SoundManager.stopBackgroundMusic() // Stop music on loss
+                }
+                // Add other state-specific sound triggers if needed
+                else -> {} // No specific sound for other states like Initializing
+            }
         }
     }
 
@@ -248,16 +268,23 @@ object GameManager {
 
     // --- Event Reporting Methods (Update StateFlows) ---
     fun enemyReachedEnd(enemy: Enemy) {
-        Log.d("GameManager", "Enemy ${enemy.getType()} reached the end!")
-        _lives.update { currentLives -> maxOf(0, currentLives - 1) } // Ensure lives don't go below 0
-        Log.d("GameManager", "Lives remaining: ${_lives.value}")
-        WaveManager.notifyEnemyRemoved()
-        unregisterGameObject(enemy) // This will update _activeEnemies StateFlow
+        Log.d("GameManager", "Enemy ${enemy.getType()} reached end.")
+        // State check should ideally be inside PlayingState or a specific state logic
+        // but for simplicity, we can check here to prevent decrementing lives in Won/Lost states
+        if (_gameState.value is PlayingState) {
+            _lives.update { currentLives -> maxOf(0, currentLives - 1) }
+             // Play sound when an enemy reaches the end
+             SoundManager.playSound(SoundManager.SoundType.ENEMY_REACHED_END)
+            unregisterGameObject(enemy) // Remove enemy from updates and lists
 
-        // Loss condition check is handled by PlayingState observing the lives StateFlow or via direct check in update
-        // if (_lives.value <= 0 && _gameState.value is PlayingState) {
-        //     changeState(LostState(this))
-        // }
+            if (_lives.value <= 0) {
+                Log.i("GameManager", "Game Over - Lives reached zero.")
+                changeState(LostState(this))
+            }
+        } else {
+            // If not in PlayingState, just remove the enemy without affecting lives
+            unregisterGameObject(enemy)
+        }
     }
 
     fun enemyDestroyed(enemy: Enemy) {
