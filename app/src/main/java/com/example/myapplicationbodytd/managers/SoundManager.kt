@@ -99,12 +99,12 @@ object SoundManager {
         try {
             // Load the specific hit sound
             sounds[SoundType.ENEMY_HIT] = soundPool!!.load(context, R.raw.hit_03, 1)
+            sounds[SoundType.ENEMY_DEATH] = soundPool!!.load(context, R.raw.president_trump, 1)
+            sounds[SoundType.TOWER_FIRE] = soundPool!!.load(context, R.raw.lazar, 1) // Placeholder ID 1 // Placeholder ID
 
             // Load placeholders for other sounds (replace with actual files later)
-            sounds[SoundType.ENEMY_DEATH] = 1 // Placeholder ID
             sounds[SoundType.ENEMY_REACHED_END] = 1 // Placeholder ID
             sounds[SoundType.TOWER_PLACE] = 1 // Placeholder ID
-            sounds[SoundType.TOWER_FIRE] = 1 // Placeholder ID
             sounds[SoundType.WAVE_START] = 1 // Placeholder ID
             sounds[SoundType.WAVE_CLEARED] = 1 // Placeholder ID
             sounds[SoundType.GAME_WIN] = 1 // Placeholder ID

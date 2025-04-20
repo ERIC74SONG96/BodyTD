@@ -54,25 +54,26 @@ object WaveManager : Updatable {
     private fun initializeWaveDefinitions() {
         waveDefinitions.clear()
 
-        // Wave 1: 10 Virus, interval 1.0s
+        // --- Define Waves --- TODO: Balance these values!
+        // Wave 1: Increased count, faster spawn, mix in Bacteria
         waveDefinitions.add(WaveDefinition(
-            spawns = List(10) { SpawnInstruction(EnemyFactory.EnemyType.VIRUS, 1.0f) }
+            spawns = List(30) { SpawnInstruction(EnemyFactory.EnemyType.VIRUS, 0.6f) } +
+                     List(5) { SpawnInstruction(EnemyFactory.EnemyType.BACTERIA, 1.0f) }
         ))
 
-        // Wave 2: 15 Virus at 0.8s, then 5 Bacteria at 1.5s
+        // Wave 2: Increased counts, faster spawns, more mix
         waveDefinitions.add(WaveDefinition(
-            spawns = List(15) { SpawnInstruction(EnemyFactory.EnemyType.VIRUS, 0.8f) } +
-                     List(5) { SpawnInstruction(EnemyFactory.EnemyType.BACTERIA, 1.5f) }
+            spawns = List(20) { SpawnInstruction(EnemyFactory.EnemyType.VIRUS, 0.5f) } +
+                     List(20) { SpawnInstruction(EnemyFactory.EnemyType.BACTERIA, 0.8f) } +
+                     List(10) { SpawnInstruction(EnemyFactory.EnemyType.FINE_PARTICLE, 0.7f) }
         ))
 
-        // Wave 3: 10 Bacteria at 1.0s, then 20 Fine Particles at 0.5s, then 5 Virus at 0.5s
+        // Wave 3: Significantly increased counts, very fast spawns
         waveDefinitions.add(WaveDefinition(
-            spawns = List(10) { SpawnInstruction(EnemyFactory.EnemyType.BACTERIA, 1.0f) } +
-                     List(20) { SpawnInstruction(EnemyFactory.EnemyType.FINE_PARTICLE, 0.5f) } +
-                     List(5) { SpawnInstruction(EnemyFactory.EnemyType.VIRUS, 0.5f) }
+            spawns = List(15) { SpawnInstruction(EnemyFactory.EnemyType.VIRUS, 0.4f) } +
+                     List(25) { SpawnInstruction(EnemyFactory.EnemyType.BACTERIA, 0.6f) } +
+                     List(30) { SpawnInstruction(EnemyFactory.EnemyType.FINE_PARTICLE, 0.4f) }
         ))
-
-        // Add more waves here if needed
     }
 
     /**
